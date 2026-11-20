@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi Database System Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .badge-pk { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-fk { background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .badge-nullable { background-color: #f3f4f6; color: #4b5563; }
+        
+        .dark .badge-pk { background-color: #78350f; color: #fef3c7; border-color: #92400e; }
+        .dark .badge-fk { background-color: #312e81; color: #e0e7ff; border-color: #4338ca; }
+        .dark .badge-nullable { background-color: #374151; color: #d1d5db; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-brand-600 text-white rounded-xl shadow-md shadow-brand-500/20">
+                    <i class="fa-solid font-bold fa-database text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight">Dokumentasi Database NICE</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Sistem Assessment Teknisi</p>
+                </div>
+            </div>
+
+            <!-- Global Search & Options -->
+            <div class="flex items-center gap-3">
+                <div class="relative w-48 sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="searchInput" placeholder="Cari tabel, kolom, tipe..." 
+                           class="w-full pl-9 pr-4 py-1.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+                </div>
+                <button id="themeToggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto w-full flex-1 px-4 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 flex-shrink-0 space-y-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 shadow-sm sticky top-20">
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Daftar Tabel</span>
+                    <span id="tableCountBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">0</span>
+                </div>
+
+                <!-- Navigation List Grouped -->
+                <nav id="sidebarNav" class="space-y-4 text-sm max-h-[calc(100vh-180px)] overflow-y-auto pr-1">
+                    <!-- Dynamic rendering via JS -->
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 min-w-0 space-y-8">
+            
+            <!-- Statistics Banner -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center space-x-3">
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+                        <i class="fa-solid fa-table text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Tabel</div>
+                        <div id="statTotalTables" class="text-xl font-bold">19</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center space-x-3">
+                    <div class="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl">
+                        <i class="fa-solid fa-columns text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Kolom</div>
+                        <div id="statTotalColumns" class="text-xl font-bold">0</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center space-x-3">
+                    <div class="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl">
+                        <i class="fa-solid fa-link text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Relasi Tabel</div>
+                        <div id="statTotalRelations" class="text-xl font-bold">0</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center space-x-3">
+                    <div class="p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                        <i class="fa-solid fa-book-bookmark text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Master Ref</div>
+                        <div id="statTotalRef" class="text-xl font-bold">6</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Table Container -->
+            <div id="tablesContainer" class="space-y-8">
+                <!-- Data is rendered dynamically via JavaScript -->
+            </div>
+
+            <!-- Empty State Search Result -->
+            <div id="emptySearch" class="hidden text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <i class="fa-solid fa-magnifying-glass text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
+                <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-300">Tabel atau Kolom Tidak Ditemukan</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Coba kata kunci pencarian yang lain.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" 
+            class="fixed bottom-6 right-6 p-3 rounded-full bg-brand-600 text-white shadow-lg hover:bg-brand-700 transition-all opacity-0 pointer-events-none z-50">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // Database Schema Definition extracted from XML
+        const dbSchema = [
+            {
+                name: "users",
+                category: "User & Hak Akses",
+                description: "Menyimpan data akun pengguna sistem internal (teknisi, admin, supervisor, dll).",
+                relations: [
+                    { type: "Belongs To", targetTable: "mt_roles", column: "role_id", targetColumn: "id", desc: "Setiap user terhubung ke satu Role Akses" },
+                    { type: "Has Many", targetTable: "mt_assesments", column: "id", targetColumn: "created_by", desc: "User dapat membuat banyak Master Assessment" },
+                    { type: "Has Many", targetTable: "mt_assessment_criteria", column: "id", targetColumn: "created_by", desc: "User dapat membuat kriteria assessment" },
+                    { type: "Has Many", targetTable: "log_assesment_transactionals", column: "id", targetColumn: "changed_by", desc: "Mencatat history perubahan status transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid / int", pk: true, fk: false, nullable: false, desc: "Primary key unik identitas user." },
+                    { name: "role_id", type: "uuid", pk: false, fk: true, nullable: false, desc: "Foreign Key ke tabel mt_roles untuk hak akses." },
+                    { name: "nip", type: "bigInteger", pk: false, fk: false, nullable: false, desc: "Nomor Induk Pegawai unik." },
+                    { name: "username", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Username unik untuk autentikasi masuk." },
+                    { name: "full_name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Nama lengkap pengguna." },
+                    { name: "email", type: "varchar(255)", pk: false, fk: false, nullable: false, unique: true, desc: "Alamat email unik aktif pengguna." },
+                    { name: "email_verified_at", type: "timestamp", pk: false, fk: false, nullable: true, desc: "Waktu/tanggal verifikasi email." },
+                    { name: "pasword", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Password akun (ter-hash aman)." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, desc: "Status keaktifan user (1=Aktif, 0=Nonaktif)." },
+                    { name: "create_by", type: "varchar/uuid", pk: false, fk: false, nullable: true, desc: "ID user pembuat akun ini." }
+                ]
+            },
+            {
+                name: "mt_roles",
+                category: "User & Hak Akses",
+                description: "Master data peran / role pengguna dalam aplikasi.",
+                relations: [
+                    { type: "Has Many", targetTable: "users", column: "id", targetColumn: "role_id", desc: "Digunakan oleh banyak user" },
+                    { type: "Has Many", targetTable: "tr_role_menus", column: "id", targetColumn: "role_id", desc: "Menentukan hak akses terhadap menu aplikasi" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key unik ID role." },
+                    { name: "name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Nama Role (misal: Admin, Teknisi, Supervisor)." },
+                    { name: "slug", type: "varchar(100)", pk: false, fk: false, nullable: false, unique: true, desc: "Slug/identifier unik role dalam huruf kecil." },
+                    { name: "is_system", type: "boolean", pk: false, fk: false, nullable: false, default: "false", desc: "Penanda apakah role bawaan sistem bawaan (tidak bisa dihapus)." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, default: "true", desc: "Status keaktifan role." }
+                ]
+            },
+            {
+                name: "mt_menus",
+                category: "User & Hak Akses",
+                description: "Master struktur menu & submenu pada antarmuka aplikasi.",
+                relations: [
+                    { type: "Self Reference", targetTable: "mt_menus", column: "parent_id", targetColumn: "id", desc: "Relasi hirarki menu utama dan sub-menu" },
+                    { type: "Has Many", targetTable: "tr_role_menus", column: "id", targetColumn: "menu_id", desc: "Dipetakan ke role di tabel tr_role_menus" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key unik ID menu." },
+                    { name: "parent_id", type: "uuid", pk: false, fk: true, nullable: true, desc: "FK ke id menu ini sendiri untuk hirarki sub-menu." },
+                    { name: "code", type: "varchar(150)", pk: false, fk: false, nullable: false, unique: true, desc: "Kode unik identifikasi menu (misal: recruitment.candidates)." },
+                    { name: "label", type: "varchar(150)", pk: false, fk: false, nullable: false, desc: "Judul/label menu yang ditayangkan." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, default: "true", desc: "Penanda apakah menu diaktifkan." }
+                ]
+            },
+            {
+                name: "tr_role_menus",
+                category: "User & Hak Akses",
+                description: "Tabel pivot pengaturan hak akses (CRUD) role terhadap menu tertentu.",
+                relations: [
+                    { type: "Belongs To", targetTable: "mt_roles", column: "role_id", targetColumn: "id", desc: "Merujuk pada tabel role" },
+                    { type: "Belongs To", targetTable: "mt_menus", column: "menu_id", targetColumn: "id", desc: "Merujuk pada tabel menu" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key transaksi permission." },
+                    { name: "role_id", type: "uuid", pk: false, fk: true, nullable: false, desc: "FK ke mt_roles." },
+                    { name: "menu_id", type: "uuid", pk: false, fk: true, nullable: false, desc: "FK ke mt_menus." },
+                    { name: "can_view", type: "boolean", pk: false, fk: false, nullable: false, default: "0", desc: "Izin melihat/membuka menu (View)." },
+                    { name: "can_create", type: "boolean", pk: false, fk: false, nullable: false, default: "0", desc: "Izin menambah data baru (Create)." },
+                    { name: "can_update", type: "boolean", pk: false, fk: false, nullable: false, default: "0", desc: "Izin mengubah data (Update)." },
+                    { name: "can_delete", type: "boolean", pk: false, fk: false, nullable: false, default: "0", desc: "Izin menghapus data (Delete)." }
+                ]
+            },
+            {
+                name: "mt_assesment_categories",
+                category: "Master Assessment",
+                description: "Kategori kelompok penilaian kriteria assessment (misal: Kerapian, Teknis, K3).",
+                relations: [
+                    { type: "Has Many", targetTable: "mt_assessment_criteria", column: "id", targetColumn: "assesment_category_id", desc: "Memiliki banyak kriteria di dalamnya" },
+                    { type: "Has Many", targetTable: "tr_assessment_detail_criteria", column: "id", targetColumn: "category_id", desc: "Kategori snapshot disimpan pada transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary key kategori assessment." },
+                    { name: "name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Nama Kategori (misal: Kerapian Kabel, K3)." },
+                    { name: "code", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Kode singkatan unik kategori." },
+                    { name: "max_score", type: "double", pk: false, fk: false, nullable: false, default: "100", desc: "Nilai maksimal poin untuk kategori ini." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, desc: "Status aktif kategori." }
+                ]
+            },
+            {
+                name: "mt_assesments",
+                category: "Master Assessment",
+                description: "Master Templat Utama Assessment.",
+                relations: [
+                    { type: "Belongs To", targetTable: "ref_assesment_codes", column: "assesment_code_id", targetColumn: "id", desc: "Memakai referensi kode tipe assessment" },
+                    { type: "Has Many", targetTable: "mt_assessment_criteria", column: "id", targetColumn: "assesment_id", desc: "Memiliki daftar kriteria penilaian" },
+                    { type: "Has Many", targetTable: "tr_assesment_details", column: "id", targetColumn: "assesment_id", desc: "Dipakai di transaksi detail assessment" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary key master assessment." },
+                    { name: "name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Nama Assessment (misal: Assessment PSB Standard)." },
+                    { name: "assesment_code_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_assesment_codes (tipe assessment)." },
+                    { name: "created_by", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "ID user pembuat templat." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, default: "true", desc: "Status aktif templat." }
+                ]
+            },
+            {
+                name: "mt_assessment_criteria",
+                category: "Master Assessment",
+                description: "Master kriteria/item yang dinilai pada suatu templat assessment.",
+                relations: [
+                    { type: "Belongs To", targetTable: "mt_assesments", column: "assesment_id", targetColumn: "id", desc: "Merujuk ke templat master assessment induk" },
+                    { type: "Belongs To", targetTable: "mt_assesment_categories", column: "assesment_category_id", targetColumn: "id", desc: "Terikat kategori tertentu" },
+                    { type: "Belongs To", targetTable: "ref_criteria_types", column: "criteria_type_id", targetColumn: "id", desc: "Tipe penentuan nilai kriteria" },
+                    { type: "Belongs To", targetTable: "ref_calculation_operations", column: "opration_id", targetColumn: "id", desc: "Operasi kalkulasi matematika (jika tipe kalkulasi)" },
+                    { type: "Belongs To", targetTable: "ref_score_types", column: "score_type_id", targetColumn: "id", desc: "Format jenis nilai/skor" },
+                    { type: "Has Many", targetTable: "mt_assessment_criteria_steps", column: "id", targetColumn: "assesment_criteria_id", desc: "Memiliki langkah-langkah pengerjaan/step" },
+                    { type: "Has Many", targetTable: "mt_assessment_criteria_rules", column: "id", targetColumn: "assesment_criteria_id", desc: "Aturan validasi kriteria" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary key master kriteria." },
+                    { name: "assesment_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke templat mt_assesments." },
+                    { name: "assesment_category_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke mt_assesment_categories." },
+                    { name: "name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Nama kriteria penilaian." },
+                    { name: "criteria_code", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Kode kriteria penilaian unik." },
+                    { name: "criteria_type_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_criteria_types (Single/Calculate)." },
+                    { name: "opration_id", type: "varchar(36)", pk: false, fk: true, nullable: true, desc: "FK ke ref_calculation_operations." },
+                    { name: "score_type_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_score_types (Persentase, Nominal, dll)." },
+                    { name: "score", type: "double", pk: false, fk: false, nullable: true, desc: "Nilai acuan/maksimal kriteria." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, default: "true", desc: "Status aktif kriteria." },
+                    { name: "created_by", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "ID user pembuat." }
+                ]
+            },
+            {
+                name: "mt_assessment_criteria_steps",
+                category: "Master Assessment",
+                description: "Langkah-langkah proses penanganan teknis dari suatu kriteria.",
+                relations: [
+                    { type: "Belongs To", targetTable: "mt_assessment_criteria", column: "assesment_criteria_id", targetColumn: "id", desc: "Langkah terikat pada kriteria tertentu" },
+                    { type: "Has Many", targetTable: "tr_assessment_criteria_step_values", column: "id", targetColumn: "criteria_step_id", desc: "Memiliki skema variabel pendukung" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary key langkah/step." },
+                    { name: "assesment_criteria_id", type: "uuid", pk: false, fk: true, nullable: false, desc: "FK ke mt_assessment_criteria." },
+                    { name: "squence", type: "biginteger", pk: false, fk: false, nullable: false, desc: "Urutan tahapan langkah pengerjaan (1, 2, 3...)." },
+                    { name: "step_id", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Identifier unik step dari sistem eksternal ERP." },
+                    { name: "step_code", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Kode teknis step (misal: penarikan_kabel)." },
+                    { name: "step_name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Nama deskriptif step (misal: Penarikan Kabel)." }
+                ]
+            },
+            {
+                name: "tr_assessment_criteria_step_values",
+                category: "Master Assessment",
+                description: "Skema master variabel dinamis yang harus diisi di setiap tahapan langkah/step.",
+                relations: [
+                    { type: "Belongs To", targetTable: "mt_assessment_criteria_steps", column: "criteria_step_id", targetColumn: "id", desc: "Merujuk ke langkah pengerjaan" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key variabel step." },
+                    { name: "criteria_step_id", type: "uuid", pk: false, fk: true, nullable: false, desc: "FK ke mt_assessment_criteria_steps." },
+                    { name: "variable_name", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Nama label variabel dinamis." },
+                    { name: "variable_code", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Kode kunci variabel dinamis." },
+                    { name: "order", type: "integer", pk: false, fk: false, nullable: false, desc: "Urutan baris variabel." },
+                    { name: "type_data", type: "varchar(30)", pk: false, fk: false, nullable: false, default: "number", desc: "Tipe input data (number, text, date, image)." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, desc: "Status variabel aktif." }
+                ]
+            },
+            {
+                name: "mt_assessment_criteria_rules",
+                category: "Master Assessment",
+                description: "Aturan/rule kualifikasi penilaian otomatis terhadap suatu kriteria.",
+                relations: [
+                    { type: "Belongs To", targetTable: "mt_assessment_criteria", column: "assesment_criteria_id", targetColumn: "id", desc: "Merujuk ke kriteria induk" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key rule." },
+                    { name: "assesment_criteria_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke mt_assessment_criteria." },
+                    { name: "rule_code", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Kode unik aturan penentuan." },
+                    { name: "rule", type: "text", pk: false, fk: false, nullable: false, desc: "Formula/ekspresi teks logika aturan." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, default: "true", desc: "Status aktif aturan." },
+                    { name: "created_by", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "ID user pembuat." }
+                ]
+            },
+            {
+                name: "tr_assesments",
+                category: "Transaksi Assessment",
+                description: "Header utama transaksi eksekusi assessment lapangan.",
+                relations: [
+                    { type: "Belongs To", targetTable: "ref_assesment_codes", column: "assesment_code_id", targetColumn: "id", desc: "Tipe kode jenis assessment transaksi" },
+                    { type: "Belongs To", targetTable: "ref_assessment_statuses", column: "status_id", targetColumn: "id", desc: "Status progres transaksi (Draft, In Progress, Complete)" },
+                    { type: "Belongs To", targetTable: "ref_assessment_results", column: "result_id", targetColumn: "id", desc: "Hasil penilaian akhir (Normal/Abnormal)" },
+                    { type: "Has Many", targetTable: "tr_assesment_details", column: "id", targetColumn: "assessment_transaction_id", desc: "Memiliki rincian skor per templat" },
+                    { type: "Has One", targetTable: "dt_assesment_informations", column: "id", targetColumn: "assessment_transaction_id", desc: "Informasi metadata Work Order pelanggan" },
+                    { type: "Has Many", targetTable: "log_assesment_transactionals", column: "id", targetColumn: "assessment_transaction_id", desc: "Riwayat log transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary key ID Transaksi Assessment." },
+                    { name: "pppoe_secret", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Username/ID pelanggan PPPoE." },
+                    { name: "assesment_code_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_assesment_codes." },
+                    { name: "work_order_id", type: "varchar(36)", pk: false, fk: false, nullable: true, desc: "ID Work Order pekerjaan dari ERP." },
+                    { name: "current_pic_id", type: "varchar(36)", pk: false, fk: true, nullable: true, desc: "ID Person in Charge / Penanggung jawab saat ini." },
+                    { name: "company_code", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Kode perusahaan pelaksana." },
+                    { name: "system_code", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Kode modul sistem pelaksana." },
+                    { name: "started_at", type: "timestamp", pk: false, fk: false, nullable: false, desc: "Waktu transaksi assessment dimulai." },
+                    { name: "completed_at", type: "timestamp", pk: false, fk: false, nullable: true, desc: "Waktu transaksi assessment diselesaikan." },
+                    { name: "status_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_assessment_statuses." },
+                    { name: "result_id", type: "varchar(36)", pk: false, fk: true, nullable: true, desc: "FK ke ref_assessment_results." },
+                    { name: "is_had_draft", type: "boolean", pk: false, fk: false, nullable: false, default: "false", desc: "Penanda apakah transaksi pernah disimpan dalam bentuk draf." }
+                ]
+            },
+            {
+                name: "tr_assesment_details",
+                category: "Transaksi Assessment",
+                description: "Sub-header transaksi per templat assessment yang dikerjakan.",
+                relations: [
+                    { type: "Belongs To", targetTable: "tr_assesments", column: "assessment_transaction_id", targetColumn: "id", desc: "Merujuk pada header utama transaksi" },
+                    { type: "Belongs To", targetTable: "mt_assesments", column: "assesment_id", targetColumn: "id", desc: "Merujuk master assessment templat" },
+                    { type: "Belongs To", targetTable: "ref_assesment_codes", column: "assesment_code_id", targetColumn: "id", desc: "Tipe kode jenis assessment" },
+                    { type: "Has Many", targetTable: "tr_assessment_detail_criteria", column: "id", targetColumn: "assessment_detail_id", desc: "Memiliki daftar kriteria nilai transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key detail assessment." },
+                    { name: "assessment_transaction_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke header tr_assesments." },
+                    { name: "assesment_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke mt_assesments." },
+                    { name: "assessment_name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Snapshot nama assessment saat transaksi." },
+                    { name: "assesment_code_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_assesment_codes." },
+                    { name: "total_score", type: "double", pk: false, fk: false, nullable: false, desc: "Total skor akumulasi yang didapatkan." }
+                ]
+            },
+            {
+                name: "tr_assessment_detail_criteria",
+                category: "Transaksi Assessment",
+                description: "Hasil perolehan nilai/skor riil per kriteria pada transaksi assessment.",
+                relations: [
+                    { type: "Belongs To", targetTable: "tr_assesment_details", column: "assessment_detail_id", targetColumn: "id", desc: "Merujuk ke detail assessment" },
+                    { type: "Belongs To", targetTable: "mt_assessment_criteria", column: "criteria_id", targetColumn: "id", desc: "Merujuk master kriteria acuan" },
+                    { type: "Belongs To", targetTable: "mt_assesment_categories", column: "category_id", targetColumn: "id", desc: "Merujuk kategori penilaian" },
+                    { type: "Belongs To", targetTable: "ref_criteria_types", column: "criteria_type_id", targetColumn: "id", desc: "Merujuk tipe kriteria" },
+                    { type: "Belongs To", targetTable: "ref_calculation_operations", column: "operation_id", targetColumn: "id", desc: "Merujuk jenis operasi matematika" },
+                    { type: "Belongs To", targetTable: "ref_score_types", column: "score_type_id", targetColumn: "id", desc: "Merujuk jenis format skor" },
+                    { type: "Has Many", targetTable: "tr_assessment_detail_rules", column: "id", targetColumn: "criteria_transaction_id", desc: "Hasil validasi rule kriteria" },
+                    { type: "Has Many", targetTable: "tr_assessment_step_values", column: "id", targetColumn: "criteria_transaction_id", desc: "Data isian langkah pengerjaan kriteria" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key hasil kriteria transaksi." },
+                    { name: "assessment_detail_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke tr_assesment_details." },
+                    { name: "criteria_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke mt_assessment_criteria." },
+                    { name: "criteria_name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Snapshot nama kriteria saat pengerjaan." },
+                    { name: "category_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke mt_assesment_categories." },
+                    { name: "category_name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Snapshot nama kategori." },
+                    { name: "category_max_score", type: "double", pk: false, fk: false, nullable: false, desc: "Max score kategori." },
+                    { name: "criteria_type_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_criteria_types." },
+                    { name: "criteria_type_name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Snapshot nama tipe kriteria." },
+                    { name: "operation_id", type: "varchar(36)", pk: false, fk: true, nullable: true, desc: "FK ke ref_calculation_operations." },
+                    { name: "score_type_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_score_types." },
+                    { name: "max_score", type: "double", pk: false, fk: false, nullable: true, desc: "Batas poin maksimal kriteria ini." },
+                    { name: "obtained_score", type: "double", pk: false, fk: false, nullable: true, desc: "Poin aktual yang diperoleh." },
+                    { name: "calculated_value", type: "varchar/double", pk: false, fk: false, nullable: true, desc: "Hasil perhitungan variabel jika bertipe kalkulasi." },
+                    { name: "description", type: "text", pk: false, fk: false, nullable: true, desc: "Catatan/keterangan tambahan penilaian." }
+                ]
+            },
+            {
+                name: "tr_assessment_detail_rules",
+                category: "Transaksi Assessment",
+                description: "Hasil evaluasi aturan/rule pada transaksi assessment.",
+                relations: [
+                    { type: "Belongs To", targetTable: "tr_assessment_detail_criteria", column: "criteria_transaction_id", targetColumn: "id", desc: "Merujuk ke kriteria transaksi" },
+                    { type: "Belongs To", targetTable: "mt_assessment_criteria_rules", column: "rule_id", targetColumn: "id", desc: "Merujuk acuan rule master" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key hasil rule transaksi." },
+                    { name: "criteria_transaction_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke tr_assessment_detail_criteria." },
+                    { name: "rule_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke mt_assessment_criteria_rules." },
+                    { name: "rule_name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Snapshot nama rule." },
+                    { name: "expected_value", type: "boolean", pk: false, fk: false, nullable: false, desc: "Nilai logika acuan yang diharapkan." },
+                    { name: "actual_value", type: "boolean", pk: false, fk: false, nullable: false, desc: "Nilai logika aktual kondisi di lapangan." },
+                    { name: "is_pass", type: "boolean", pk: false, fk: false, nullable: false, default: "true", desc: "Status kelulusan evaluasi aturan (Pass/Fail)." }
+                ]
+            },
+            {
+                name: "tr_assessment_step_values",
+                category: "Transaksi Assessment",
+                description: "Record pelaksanaan tahapan/step teknis saat transaksi assessment.",
+                relations: [
+                    { type: "Belongs To", targetTable: "tr_assessment_detail_criteria", column: "criteria_transaction_id", targetColumn: "id", desc: "Merujuk kriteria transaksi" },
+                    { type: "Has Many", targetTable: "dt_step_input_values", column: "id", targetColumn: "assessment_step_values_id", desc: "Memiliki rincian isian data nilai input variabel" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key step transaksi." },
+                    { name: "criteria_transaction_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke tr_assessment_detail_criteria." },
+                    { name: "order", type: "integer", pk: false, fk: false, nullable: false, desc: "Nomor urut pengerjaan langkah." },
+                    { name: "step_code", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Kode identifikasi teknis step." },
+                    { name: "variable_code", type: "varchar(50)", pk: false, fk: false, nullable: true, desc: "Kode variabel terasosiasi (jika ada)." },
+                    { name: "variable_name", type: "varchar(50)", pk: false, fk: false, nullable: true, desc: "Nama variabel terasosiasi (jika ada)." }
+                ]
+            },
+            {
+                name: "dt_step_input_values",
+                category: "Transaksi Assessment",
+                description: "Nilai aktual inputan variabel dari teknisi pada setiap step transaksi.",
+                relations: [
+                    { type: "Belongs To", targetTable: "tr_assessment_step_values", column: "assessment_step_values_id", targetColumn: "id", desc: "Merujuk ke record step transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key nilai variabel step." },
+                    { name: "assessment_step_values_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke tr_assessment_step_values." },
+                    { name: "variable_name", type: "varchar(50)", pk: false, fk: false, nullable: true, desc: "Nama label variabel." },
+                    { name: "variable_code", type: "varchar(50)", pk: false, fk: false, nullable: true, desc: "Kode kunci variabel." },
+                    { name: "order", type: "integer", pk: false, fk: false, nullable: false, desc: "Nomor urut variabel." },
+                    { name: "type_data", type: "varchar(30)", pk: false, fk: false, nullable: false, default: "number", desc: "Tipe tipe data (number, text, date, image)." },
+                    { name: "value", type: "varchar(255)", pk: false, fk: false, nullable: true, desc: "Nilai masukan riil yang diketik/diunggah." }
+                ]
+            },
+            {
+                name: "dt_assesment_informations",
+                category: "Informasi Integrasi ERP",
+                description: "Detail data pelanggan dan informasi Work Order pekerjaan dari ERP.",
+                relations: [
+                    { type: "Belongs To", targetTable: "tr_assesments", column: "assessment_transaction, id", targetColumn: "id", desc: "Header transaksi assessment induk" },
+                    { type: "Belongs To", targetTable: "ref_assesment_codes", column: "assesment_code_id", targetColumn: "id", desc: "Tipe kode jenis assessment" },
+                    { type: "Has Many", targetTable: "dt_assessment_pic_informations", column: "id", targetColumn: "assesment_information_id", desc: "Daftar personil teknisi / PIC yang bertugas" },
+                    { type: "Has Many", targetTable: "dt_assessment_technical_informations", column: "id", targetColumn: "assesment_information_id", desc: "Detail informasi teknis ODP / splitter lapangan" },
+                    { type: "Has One", targetTable: "dt_assessment_wo_psb_informations", column: "id", targetColumn: "assesnment_information_id", desc: "Data spesifik Work Order Pemasangan Baru (PSB)" },
+                    { type: "Has Many", targetTable: "dt_assessment_step_values", column: "id", targetColumn: "assesment_information_id", desc: "Rekap data tahapan step" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key data informasi pelanggan." },
+                    { name: "assessment_transaction_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke header tr_assesments." },
+                    { name: "branch_id", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "ID Cabang lokasi pelanggan." },
+                    { name: "branch_name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Nama Cabang/Wilayah Operasional." },
+                    { name: "regional_name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Nama Regional." },
+                    { name: "pppoe_secret", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Username internet PPPoE." },
+                    { name: "wo_id", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "ID Work Order di ERP." },
+                    { name: "no_wo", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Nomor resmi surat Work Order." },
+                    { name: "customer_name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Nama lengkap pelanggan internet." },
+                    { name: "assesment_code_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_assesment_codes." },
+                    { name: "work_order_date", type: "date", pk: false, fk: false, nullable: false, desc: "Tanggal diterbitkannya Work Order." },
+                    { name: "start_work_order", type: "timestamp", pk: false, fk: false, nullable: false, desc: "Waktu pengerjaan WO dimulai." },
+                    { name: "end_work_order", type: "timestamp", pk: false, fk: false, nullable: false, desc: "Waktu pengerjaan WO selesai." },
+                    { name: "duration_minute", type: "integer", pk: false, fk: false, nullable: false, desc: "Total durasi waktu pengerjaan (menit)." },
+                    { name: "address", type: "text", pk: false, fk: false, nullable: false, desc: "Alamat lokasi Pemasangan/Perbaikan." },
+                    { name: "cust_extra", type: "json", pk: false, fk: false, nullable: true, desc: "Metadata tambahan data pelanggan (JSON)." },
+                    { name: "erp_extra", type: "json", pk: false, fk: false, nullable: true, desc: "Metadata tambahan dari sistem ERP (JSON)." }
+                ]
+            },
+            {
+                name: "dt_assessment_pic_informations",
+                category: "Informasi Integrasi ERP",
+                description: "Daftar teknisi/petugas yang terlibat dalam penanganan lokasi pelanggan.",
+                relations: [
+                    { type: "Belongs To", targetTable: "dt_assesment_informations", column: "assesment_information_id", targetColumn: "id", desc: "Merujuk ke informasi transaksi utama" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key data PIC." },
+                    { name: "assesment_information_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke dt_assesment_informations." },
+                    { name: "role", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Peran PIC dalam tim (Leader, Helper, Teknisi Utama)." },
+                    { name: "nip", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "NIP petugas." },
+                    { name: "nick_name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Nama panggilan teknisi." },
+                    { name: "full_name", type: "varchar(255)", pk: false, fk: false, nullable: false, desc: "Nama lengkap teknisi." },
+                    { name: "is_primary", type: "boolean", pk: false, fk: false, nullable: false, default: "false", desc: "Penanda apakah teknisi ini penanggung jawab utama." }
+                ]
+            },
+            {
+                name: "dt_assessment_technical_informations",
+                category: "Informasi Integrasi ERP",
+                description: "Detail data teknis infrastruktur jaringan lokasi pelanggan (Area, Splitter, ODP).",
+                relations: [
+                    { type: "Belongs To", targetTable: "dt_assesment_informations", column: "assesment_information_id", targetColumn: "id", desc: "Merujuk ke data informasi assessment" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key info teknis." },
+                    { name: "assesment_information_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke dt_assesment_informations." },
+                    { name: "area_id", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "ID Area lokasi jaringan." },
+                    { name: "area_name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Nama Area." },
+                    { name: "area_code", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Kode Area." },
+                    { name: "area_primary_id", type: "bigint", pk: false, fk: false, nullable: true, desc: "ID Area Utama (Parent Area)." },
+                    { name: "area_primary_name", type: "varchar(100)", pk: false, fk: false, nullable: true, desc: "Nama Area Utama." },
+                    { name: "area_primary_code", type: "varchar(50)", pk: false, fk: false, nullable: true, desc: "Kode Area Utama." },
+                    { name: "splitter_id", type: "integer", pk: false, fk: false, nullable: false, desc: "ID perangkat Splitter Fiber Optic." },
+                    { name: "spliter", type: "varchar(30)", pk: false, fk: false, nullable: false, desc: "Kode/Nama Splitter." }
+                ]
+            },
+            {
+                name: "dt_assessment_wo_psb_informations",
+                category: "Informasi Integrasi ERP",
+                description: "Informasi tambahan khusus untuk pekerjaan PSB (Pasang Baru).",
+                relations: [
+                    { type: "Belongs To", targetTable: "dt_assesment_informations", column: "assesnment_information_id", targetColumn: "id", desc: "Relasi 1-to-1 ke dt_assesment_informations" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key info PSB." },
+                    { name: "assesnment_information_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke dt_assesment_informations." },
+                    { name: "team_id", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "ID Tim Teknisi PSB." },
+                    { name: "team_name", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Nama Tim Teknisi." },
+                    { name: "sales_distance", type: "integer", pk: false, fk: false, nullable: false, desc: "Estimasi jarak penarikan dari Sales (meter)." },
+                    { name: "technician_distance", type: "integer", pk: false, fk: false, nullable: false, desc: "Aktual jarak penarikan oleh Teknisi (meter)." },
+                    { name: "dropcore", type: "integer", pk: false, fk: false, nullable: false, desc: "Panjang pemakaian kabel Dropcore (meter)." },
+                    { name: "cable_status", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Status kondisi fisik kabel." },
+                    { name: "cable_history_id", type: "bigint", pk: false, fk: false, nullable: false, desc: "ID History log kabel." },
+                    { name: "cable_detail_history_id", type: "bigint", pk: false, fk: false, nullable: false, desc: "ID Rincian log history kabel." },
+                    { name: "psb_extra", type: "json", pk: false, fk: false, nullable: true, desc: "Data JSON ekstra (start_dropcore, end_dropcore, port, dll)." }
+                ]
+            },
+            {
+                name: "dt_assessment_step_data_values",
+                category: "Transaksi Assessment",
+                description: "Log masukan data pendukung (foto/berkas) dari tahapan pengerjaan.",
+                relations: [
+                    { type: "Belongs To", targetTable: "tr_assessment_step_values", column: "assessment_step_values_id", targetColumn: "id", desc: "Merujuk ke record step transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key log nilai data." },
+                    { name: "assessment_step_values_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke tr_assessment_step_values." },
+                    { name: "data_code", type: "varchar(50)", pk: false, fk: false, nullable: true, desc: "Kode unik data masukan." },
+                    { name: "data_name", type: "varchar(50)", pk: false, fk: false, nullable: true, desc: "Nama variabel data." },
+                    { name: "type_data", type: "enum", pk: false, fk: false, nullable: false, desc: "Jenis tipe file (image, datetime, date, text, number)." },
+                    { name: "value", type: "varchar(255)", pk: false, fk: false, nullable: true, desc: "Nilai string / URL lokasi foto lampiran." }
+                ]
+            },
+            {
+                name: "log_assesment_transactionals",
+                category: "Log & Audit",
+                description: "Tabel audit log pergerakan dan perubahan status transaksi assessment.",
+                relations: [
+                    { type: "Belongs To", targetTable: "tr_assesments", column: "assessment_transaction_id", targetColumn: "id", desc: "Header transaksi assessment yang diubah" },
+                    { type: "Belongs To", targetTable: "ref_assessment_statuses", column: "from_status_id", targetColumn: "id", desc: "Status transaksi awal" },
+                    { type: "Belongs To", targetTable: "ref_assessment_statuses", column: "to_status_id", targetColumn: "id", desc: "Status transaksi tujuan (terbaru)" },
+                    { type: "Belongs To", targetTable: "users", column: "changed_by", targetColumn: "id", desc: "User yang melakukan aksi perubahan" }
+                ],
+                columns: [
+                    { name: "id", type: "varchar(36)", pk: true, fk: false, nullable: false, desc: "Primary Key ID Log." },
+                    { name: "assessment_transaction_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke header tr_assesments." },
+                    { name: "from_status_id", type: "varchar(36)", pk: false, fk: true, nullable: true, desc: "FK ke ref_assessment_statuses (Status Sebelumnya)." },
+                    { name: "to_status_id", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke ref_assessment_statuses (Status Baru)." },
+                    { name: "changed_by", type: "varchar(36)", pk: false, fk: true, nullable: false, desc: "FK ke users (User pengubah)." },
+                    { name: "changed_at", type: "timestamp", pk: false, fk: false, nullable: false, desc: "Waktu riil kejadian perubahan." },
+                    { name: "remark", type: "varchar(100)", pk: false, fk: false, nullable: true, desc: "Catatan/alasan perubahan status." }
+                ]
+            },
+            {
+                name: "ref_assesment_codes",
+                category: "Master Referensi",
+                description: "Tabel referensi master jenis/tipe transaksi assessment (PSB, Perbaikan, dll).",
+                relations: [
+                    { type: "Has Many", targetTable: "mt_assesments", column: "id", targetColumn: "assesment_code_id", desc: "Acuan templat assessment" },
+                    { type: "Has Many", targetTable: "tr_assesments", column: "id", targetColumn: "assesment_code_id", desc: "Acuan transaksi assessment" },
+                    { type: "Has Many", targetTable: "tr_assesment_details", column: "id", targetColumn: "assesment_code_id", desc: "Acuan rincian detail assessment" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key ID kode assessment." },
+                    { name: "name", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Nama Jenis Assessment (misal: Pasang Baru - PSB)." },
+                    { name: "code", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Kode identitas unik (misal: psb, kerapian)." }
+                ]
+            },
+            {
+                name: "ref_assessment_statuses",
+                category: "Master Referensi",
+                description: "Tabel referensi daftar status alur hidup (workflow) assessment.",
+                relations: [
+                    { type: "Has Many", targetTable: "tr_assesments", column: "id", targetColumn: "status_id", desc: "Digunakan sebagai status transaksi aktif" },
+                    { type: "Has Many", targetTable: "log_assesment_transactionals", column: "id", targetColumn: "from_status_id / to_status_id", desc: "Digunakan pada audit log" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key status ID." },
+                    { name: "name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Nama Status (Draft, Sedang Diproses, Selesai, Menunggu validasi)." },
+                    { name: "code", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Kode unik status (DRAFT, IN_PROGRESS, COMPLETE, WAITING)." },
+                    { name: "is_final", type: "boolean", pk: false, fk: false, nullable: false, default: "0", desc: "Penanda apakah status ini merupakan tahap akhir/selesai." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, default: "1", desc: "Status keaktifan opsi status." }
+                ]
+            },
+            {
+                name: "ref_assessment_results",
+                category: "Master Referensi",
+                description: "Tabel referensi simpulan hasil akhir penilaian kualitas assessment.",
+                relations: [
+                    { type: "Has Many", targetTable: "tr_assesments", column: "id", targetColumn: "result_id", desc: "Merujuk ke hasil akhir transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key result ID." },
+                    { name: "code", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Kode hasil (NORMAL, ABNORMAL, PENDING, UNKNOWN)." },
+                    { name: "name", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Nama Tampilan (Normal, Abnormal, Pending, Unknown)." },
+                    { name: "severity", type: "varchar(20)", pk: false, fk: false, nullable: false, desc: "Tingkat keparahan / Badge UI (success, danger, warning, secondary)." },
+                    { name: "description", type: "text", pk: false, fk: false, nullable: true, desc: "Penjelasan arti hasil assessment." },
+                    { name: "display_order", type: "integer", pk: false, fk: false, nullable: false, desc: "Urutan penayangan." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, desc: "Status keaktifan." }
+                ]
+            },
+            {
+                name: "ref_criteria_types",
+                category: "Master Referensi",
+                description: "Tabel referensi tipe logika kriteria penilaian.",
+                relations: [
+                    { type: "Has Many", targetTable: "mt_assessment_criteria", column: "id", targetColumn: "criteria_type_id", desc: "Pilihan tipe kriteria di templat master" },
+                    { type: "Has Many", targetTable: "tr_assessment_detail_criteria", column: "id", targetColumn: "criteria_type_id", desc: "Tipe kriteria yang tercatat di transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key tipe kriteria." },
+                    { name: "code", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Kode tipe (SINGLE, CALCULATE)." },
+                    { name: "name", type: "varchar(50)", pk: false, fk: false, nullable: false, desc: "Nama tampilan (Single, Kalkulasi)." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, desc: "Status keaktifan." }
+                ]
+            },
+            {
+                name: "ref_calculation_operations",
+                category: "Master Referensi",
+                description: "Tabel referensi daftar jenis operasi matematika penentuan nilai kalkulasi.",
+                relations: [
+                    { type: "Has Many", targetTable: "mt_assessment_criteria", column: "id", targetColumn: "opration_id", desc: "Acuan rumus kalkulasi di master" },
+                    { type: "Has Many", targetTable: "tr_assessment_detail_criteria", column: "id", targetColumn: "operation_id", desc: "Acuan rumus pada transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key operasi kalkulasi." },
+                    { name: "code", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Kode unik operasi (ADD, MIN, MULTIPLY, MAX, PERCENT)." },
+                    { name: "symbol", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Simbol matematika (+, -, *, %, MAX)." },
+                    { name: "name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Nama operasi (Penjumlahan, Pengurangan, Persentase, dll)." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, desc: "Status keaktifan." }
+                ]
+            },
+            {
+                name: "ref_score_types",
+                category: "Master Referensi",
+                description: "Tabel referensi tipe format satuan skor perolehan.",
+                relations: [
+                    { type: "Has Many", targetTable: "mt_assessment_criteria", column: "id", targetColumn: "score_type_id", desc: "Acuan format skor di master" },
+                    { type: "Has Many", targetTable: "tr_assessment_detail_criteria", column: "id", targetColumn: "score_type_id", desc: "Acuan format skor di transaksi" }
+                ],
+                columns: [
+                    { name: "id", type: "uuid", pk: true, fk: false, nullable: false, desc: "Primary Key jenis skor." },
+                    { name: "code", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Kode format (PERCENT, NOMINAL)." },
+                    { name: "name", type: "varchar(100)", pk: false, fk: false, nullable: false, desc: "Nama tampilan (Persentase, Nominal)." },
+                    { name: "symbol", type: "varchar(36)", pk: false, fk: false, nullable: false, desc: "Simbol penulisan skor (%, pt, poin)." },
+                    { name: "is_active", type: "boolean", pk: false, fk: false, nullable: false, desc: "Status keaktifan." }
+                ]
+            }
+        ];
+
+        // Global State & Elements
+        let filteredSchema = [...dbSchema];
+
+        const searchInput = document.getElementById('searchInput');
+        const themeToggle = document.getElementById('themeToggle');
+        const sidebarNav = document.getElementById('sidebarNav');
+        const tablesContainer = document.getElementById('tablesContainer');
+        const emptySearch = document.getElementById('emptySearch');
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+        // Theme Toggle Logic
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Initialize Page Data
+        function initApp() {
+            calculateStats();
+            renderSidebarNav(dbSchema);
+            renderTables(dbSchema);
+        }
+
+        // Calculate Overview Statistics
+        function calculateStats() {
+            let totalColumns = 0;
+            let totalRelations = 0;
+            let totalRef = 0;
+
+            dbSchema.forEach(table => {
+                totalColumns += table.columns.length;
+                totalRelations += table.relations.length;
+                if (table.category === "Master Referensi") totalRef++;
+            });
+
+            document.getElementById('statTotalTables').textContent = dbSchema.length;
+            document.getElementById('statTotalColumns').textContent = totalColumns;
+            document.getElementById('statTotalRelations').textContent = totalRelations;
+            document.getElementById('statTotalRef').textContent = totalRef;
+            document.getElementById('tableCountBadge').textContent = dbSchema.length;
+        }
+
+        // Group schema by category
+        function groupByCategory(schemaList) {
+            return schemaList.reduce((acc, table) => {
+                const cat = table.category || 'Lainnya';
+                if (!acc[cat]) acc[cat] = [];
+                acc[cat].push(table);
+                return acc;
+            }, {});
+        }
+
+        // Render Sidebar Navigation
+        function renderSidebarNav(schemaList) {
+            sidebarNav.innerHTML = '';
+            const grouped = groupByCategory(schemaList);
+
+            if (Object.keys(grouped).length === 0) {
+                sidebarNav.innerHTML = `<div class="text-xs text-slate-400 py-2 italic text-center">Tidak ada hasil</div>`;
+                return;
+            }
+
+            for (const [category, tables] of Object.entries(grouped)) {
+                const catHeader = document.createElement('div');
+                catHeader.className = "space-y-1 mb-3";
+                
+                catHeader.innerHTML = `
+                    <div class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1">${category}</div>
+                    <div class="space-y-0.5">
+                        ${tables.map(t => `
+                            <a href="#table-${t.name}" 
+                               class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 hover:text-brand-600 dark:hover:text-brand-400 transition-colors font-mono text-xs">
+                                <span class="truncate">${t.name}</span>
+                                <span class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-400 px-1.5 py-0.2 rounded-md font-sans">${t.columns.length}</span>
+                            </a>
+                        `).join('')}
+                    </div>
+                `;
+                sidebarNav.appendChild(catHeader);
+            }
+        }
+
+        // Render Detailed Table Cards
+        function renderTables(schemaList) {
+            tablesContainer.innerHTML = '';
+
+            if (schemaList.length === 0) {
+                emptySearch.classList.remove('hidden');
+                return;
+            } else {
+                emptySearch.classList.add('hidden');
+            }
+
+            schemaList.forEach(table => {
+                const card = document.createElement('section');
+                card.id = `table-${table.name}`;
+                card.className = "bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm overflow-hidden scroll-mt-24 transition-all";
+
+                // Header Card HTML
+                let cardHTML = `
+                    <div class="p-5 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+                                    ${table.category}
+                                </span>
+                                <h2 class="text-xl font-bold font-mono text-slate-900 dark:text-white">${table.name}</h2>
+                            </div>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${table.description}</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-slate-500 font-mono">
+                            <span class="bg-slate-100 dark:bg-slate-700/80 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-600">
+                                <i class="fa-solid fa-columns mr-1"></i> ${table.columns.length} Kolom
+                            </span>
+                            <span class="bg-slate-100 dark:bg-slate-700/80 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-600">
+                                <i class="fa-solid fa-link mr-1"></i> ${table.relations.length} Relasi
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+                // Render Table Relations if exists
+                if (table.relations && table.relations.length > 0) {
+                    cardHTML += `
+                        <div class="px-5 py-3 bg-blue-50/40 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-700/80">
+                            <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+                                <i class="fa-solid fa-diagram-project mr-1"></i> Hubungan / Relasi Tabel
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                ${table.relations.map(rel => `
+                                    <a href="#table-${rel.targetTable}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs shadow-xs hover:border-brand-500 transition-colors">
+                                        <span class="font-medium text-brand-600 dark:text-brand-400 font-mono">${rel.type}</span>
+                                        <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+                                        <span class="font-bold font-mono text-slate-800 dark:text-slate-200">${rel.targetTable}</span>
+                                        <span class="text-[11px] text-slate-500 dark:text-slate-400 hidden lg:inline">(${rel.column})</span>
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Render Columns Table
+                cardHTML += `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead class="bg-slate-100/70 dark:bg-slate-700/40 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-700">
+                                <tr>
+                                    <th class="py-3 px-4 w-48">Nama Kolom</th>
+                                    <th class="py-3 px-4 w-36">Tipe Variabel</th>
+                                    <th class="py-3 px-4 w-32 text-center">Atribut</th>
+                                    <th class="py-3 px-4">Deskripsi & Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200/70 dark:divide-slate-700/60 font-sans">
+                                ${table.columns.map(col => `
+                                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/20 transition-colors">
+                                        <td class="py-3 px-4 font-mono font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                            ${col.pk ? '<i class="fa-solid fa-key text-amber-500 text-xs" title="Primary Key"></i>' : ''}
+                                            ${col.fk ? '<i class="fa-solid fa-link text-indigo-500 text-xs" title="Foreign Key"></i>' : ''}
+                                            <span>${col.name}</span>
+                                        </td>
+                                        <td class="py-3 px-4 font-mono text-xs text-purple-600 dark:text-purple-400 font-medium">
+                                            ${col.type}
+                                        </td>
+                                        <td class="py-3 px-4 text-center space-x-1">
+                                            ${col.pk ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md badge-pk">PK</span>' : ''}
+                                            ${col.fk ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md badge-fk">FK</span>' : ''}
+                                            ${col.unique ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">UNIQUE</span>' : ''}
+                                            ${col.nullable ? '<span class="px-2 py-0.5 text-[10px] font-medium rounded-md badge-nullable">NULL</span>' : '<span class="px-2 py-0.5 text-[10px] font-medium rounded-md bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300">NOT NULL</span>'}
+                                        </td>
+                                        <td class="py-3 px-4 text-slate-600 dark:text-slate-300 leading-relaxed text-xs sm:text-sm">
+                                            <div>${col.desc}</div>
+                                            ${col.default !== undefined ? `<div class="mt-1 text-[11px] font-mono text-slate-400">Default: <span class="text-slate-600 dark:text-slate-300">${col.default}</span></div>` : ''}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                card.innerHTML = cardHTML;
+                tablesContainer.appendChild(card);
+            });
+        }
+
+        // Live Search Filter Functionality
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+
+            if (!query) {
+                renderSidebarNav(dbSchema);
+                renderTables(dbSchema);
+                return;
+            }
+
+            const searchResults = dbSchema.filter(table => {
+                const matchTableName = table.name.toLowerCase().includes(query);
+                const matchCategory = table.category.toLowerCase().includes(query);
+                const matchDesc = table.description.toLowerCase().includes(query);
+                const matchColumn = table.columns.some(col => 
+                    col.name.toLowerCase().includes(query) || 
+                    col.type.toLowerCase().includes(query) ||
+                    col.desc.toLowerCase().includes(query)
+                );
+
+                return matchTableName || matchCategory || matchDesc || matchColumn;
+            });
+
+            renderSidebarNav(searchResults);
+            renderTables(searchResults);
+        });
+
+        // Scroll to Top Button Visibility Listener
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                scrollTopBtn.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        // Initial launch
+        initApp();
+    </script>
+</body>
+</html>

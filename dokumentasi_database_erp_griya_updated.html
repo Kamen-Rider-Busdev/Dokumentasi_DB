@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi Database ERP Griya - Multi-Schema Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .badge-pk { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-fk { background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .badge-regular { background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+        
+        .dark .badge-pk { background-color: #78350f; color: #fef3c7; border-color: #92400e; }
+        .dark .badge-fk { background-color: #312e81; color: #e0e7ff; border-color: #4338ca; }
+        .dark .badge-regular { background-color: #374151; color: #d1d5db; border-color: #4b5563; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-brand-600 text-white rounded-xl shadow-md shadow-brand-500/20">
+                    <i class="fa-solid font-bold fa-database text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight">Dokumentasi Database ERP Griya</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Griya ISP Multi-Schema Data Model &amp; Dictionary</p>
+                </div>
+            </div>
+
+            <!-- Global Search & Options -->
+            <div class="flex items-center gap-3">
+                <div id="searchWrapper" class="relative w-44 sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="searchInput" placeholder="Cari tabel, kolom, tipe, relasi..." 
+                           class="w-full pl-9 pr-4 py-1.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+                </div>
+                <button id="erdToggleBtn" onclick="toggleErdView()" title="Lihat Entity Relationship Diagram"
+                        class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                    <i class="fa-solid fa-diagram-project text-brand-600 dark:text-brand-400"></i>
+                    <span id="erdToggleText" class="hidden sm:inline">Diagram ERD</span>
+                </button>
+                <button id="themeToggle" title="Ganti Tema Terang / Gelap" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto w-full flex-1 px-4 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebarContainer" class="w-full md:w-64 flex-shrink-0 space-y-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-700/80 shadow-sm sticky top-20">
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Daftar Tabel</span>
+                    <span id="tableCountBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">91</span>
+                </div>
+
+                <!-- Schema Filter Dropdown -->
+                <div class="mb-3">
+                    <select id="schemaFilter" class="w-full text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="all">Semua Schema (6 Schema)</option>
+                        <option value="griya_company">griya_company (13)</option>
+                        <option value="griya_sales">griya_sales (15)</option>
+                        <option value="griya_coverage">griya_coverage (12)</option>
+                        <option value="griya_customers">griya_customers (19)</option>
+                        <option value="griya_oprasional">griya_oprasional (20)</option>
+                        <option value="griya_warehouse">griya_warehouse (12)</option>
+                    </select>
+                </div>
+
+                <!-- Navigation List Grouped -->
+                <nav id="sidebarNav" class="space-y-4 text-sm max-h-[calc(100vh-235px)] overflow-y-auto pr-1">
+                    <!-- Dynamic rendering via JS -->
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 min-w-0 space-y-6">
+            
+            <!-- Statistics Banner -->
+            <div id="statsBanner" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center space-x-3">
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+                        <i class="fa-solid fa-layer-group text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Schema</div>
+                        <div id="statTotalSchemas" class="text-xl font-bold">6</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center space-x-3">
+                    <div class="p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                        <i class="fa-solid fa-table text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Tabel</div>
+                        <div id="statTotalTables" class="text-xl font-bold">91</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center space-x-3">
+                    <div class="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl">
+                        <i class="fa-solid fa-columns text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Atribut</div>
+                        <div id="statTotalColumns" class="text-xl font-bold">0</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center space-x-3">
+                    <div class="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl">
+                        <i class="fa-solid fa-link text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Relasi FK</div>
+                        <div id="statTotalRelations" class="text-xl font-bold">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schema Quick Filter Pills -->
+            <div id="schemaPills" class="flex flex-wrap gap-2">
+                <!-- Rendered dynamically via JS -->
+            </div>
+
+            <!-- Dynamic Table Container -->
+            <div id="tablesContainer" class="space-y-8">
+                <!-- Data is rendered dynamically via JavaScript -->
+            </div>
+
+            <!-- Empty State Search Result -->
+            <div id="emptySearch" class="hidden text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <i class="fa-solid fa-magnifying-glass text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
+                <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-300">Tabel atau Kolom Tidak Ditemukan</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Coba kata kunci pencarian yang lain atau reset filter schema.</p>
+            </div>
+
+            <!-- ERD View Container (Hidden by default) -->
+            <div id="erdContainer" class="hidden bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-diagram-project text-brand-600 dark:text-brand-400"></i>
+                            Entity Relationship Diagram (ERD)
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Representasi visual hubungan antar schema ERP Griya ISP melalui Eraser.io</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleErdView()" class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Daftar Tabel
+                        </button>
+                        <a href="https://app.eraser.io/workspace/3nENRjhBemtOx8RR6FfL?diagram=dUHWGuBu1zG96dLw2M7a" target="_blank" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-sm">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            Buka di Eraser.io
+                        </a>
+                    </div>
+                </div>
+                <div class="w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-950 flex justify-center p-4">
+                    <a href="https://app.eraser.io/workspace/3nENRjhBemtOx8RR6FfL?diagram=dUHWGuBu1zG96dLw2M7a" target="_blank">
+                        <img src="https://app.eraser.io/workspace/3nENRjhBemtOx8RR6FfL/preview?diagram=dUHWGuBu1zG96dLw2M7a&type=embed" alt="Eraser ERD Diagram" class="max-w-full h-auto rounded-lg hover:opacity-95 transition-opacity" />
+                    </a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 py-5 mt-8">
+        <div class="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <span>Dokumentasi Database ERP Griya ISP Multi-Schema &bull; 6 Schema &bull; 91 Tabel</span>
+            <span>Griya ISP Data Model &amp; Dictionary</span>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" 
+            class="fixed bottom-6 right-6 p-3 rounded-full bg-brand-600 text-white shadow-lg hover:bg-brand-700 transition-all opacity-0 pointer-events-none z-50 cursor-pointer">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // Complete ERP Griya Database Schema (All 6 schemas, 77 tables, all fields & relations preserved 100%)
+        const dbData = {
+            title: "Griya ISP Multi-Schema Data Model",
+            notation: "chen",
+            schemas: [
+                {
+                    id: "griya_company",
+                    name: "griya_company",
+                    badgeClass: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+                    dotClass: "bg-blue-500",
+                    description: "Core organizational structure, branches, divisions, users, service packages, and employee salary/performance schema configurations.",
+                    tablesCount: 13
+                },
+                {
+                    id: "griya_sales",
+                    name: "griya_sales",
+                    badgeClass: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
+                    dotClass: "bg-orange-500",
+                    description: "Sales pipeline tracking cold prospects, active prospects, lead statuses, communication logs, follow-up templates, and registration workflows.",
+                    tablesCount: 15
+                },
+                {
+                    id: "griya_coverage",
+                    name: "griya_coverage",
+                    badgeClass: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+                    dotClass: "bg-purple-500",
+                    description: "Network infrastructure management including routers, VLANs, OLTs, ports, coverage polygons, poles, splitters, dampings, and routing paths.",
+                    tablesCount: 12
+                },
+                {
+                    id: "griya_customers",
+                    name: "griya_customers",
+                    badgeClass: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+                    dotClass: "bg-emerald-500",
+                    description: "Subscriber accounts, geographical maps, document records, bank details, billing history, payment tracking, recurring billing, and service tickets.",
+                    tablesCount: 19
+                },
+                {
+                    id: "griya_oprasional",
+                    name: "griya_oprasional",
+                    badgeClass: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+                    dotClass: "bg-rose-500",
+                    description: "Field operations including PSB work orders, distribution maintenance, technician teams, dismantle logs, and splitter requests.",
+                    tablesCount: 20
+                },
+                {
+                    id: "griya_warehouse",
+                    name: "griya_warehouse",
+                    badgeClass: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+                    dotClass: "bg-amber-500",
+                    description: "Inventory tracking for equipment, fiber cables, historical cable usage, modems, return batches, and QC shopping records.",
+                    tablesCount: 12
+                }
+            ],
+            relations: [
+                // Company / org
+                { fromTable: "branches", column: "company_id", toTable: "companies" },
+                { fromTable: "users", column: "branch_id", toTable: "branches" },
+                { fromTable: "users", column: "division_id", toTable: "divisions" },
+                { fromTable: "users", column: "sales_salary_schema_id", toTable: "sales_salary_schemas" },
+                { fromTable: "sales_salary_schema_assignments", column: "sales_salary_schema_id", toTable: "sales_salary_schemas" },
+                { fromTable: "sales_salary_schema_assignments", column: "sales_nip", toTable: "users" },
+                { fromTable: "tier_schemas", column: "sales_scheme_id", toTable: "sales_salary_schemas" },
+                { fromTable: "cashback_schemas", column: "sales_scheme_id", toTable: "sales_salary_schemas" },
+                { fromTable: "performance_schemas", column: "sales_scheme_id", toTable: "sales_salary_schemas" },
+                { fromTable: "growth_reward_schemas", column: "sales_scheme_id", toTable: "sales_salary_schemas" },
+
+                // Sales funnel
+                { fromTable: "cold_prospects", column: "branch_id", toTable: "branches" },
+                { fromTable: "cold_prospects", column: "input_by", toTable: "users" },
+                { fromTable: "cold_prospects", column: "own_by", toTable: "users" },
+                { fromTable: "cold_prospects", column: "status_id_now", toTable: "ddl_status" },
+                { fromTable: "cold_prospects", column: "status_id_awal", toTable: "ddl_status" },
+                { fromTable: "history_status", column: "cold_prospect_id", toTable: "cold_prospects" },
+                { fromTable: "history_status", column: "status_id", toTable: "ddl_status" },
+                { fromTable: "history_messages", column: "history_status_id", toTable: "history_status" },
+                { fromTable: "template_follow_ups", column: "status_id", toTable: "ddl_status" },
+                { fromTable: "formulir_urls", column: "cold_prospect_id", toTable: "cold_prospects" },
+                { fromTable: "history_formulirs", column: "url_id", toTable: "formulir_urls" },
+                { fromTable: "formulirs_one_steps", column: "prospect_id", toTable: "prospects" },
+                { fromTable: "cold_prospects_charts", column: "branch_id", toTable: "branches" },
+                { fromTable: "cold_prospects_charts", column: "karyawan_nip", toTable: "users" },
+                { fromTable: "sales_phones", column: "branch_id", toTable: "branches" },
+                { fromTable: "sales_phones", column: "sales_nip", toTable: "users" },
+
+                { fromTable: "prospects", column: "branch_id", toTable: "branches" },
+                { fromTable: "prospects", column: "cold_prospect_id", toTable: "cold_prospects" },
+                { fromTable: "prospects", column: "sales_nip", toTable: "users" },
+                { fromTable: "prospects", column: "sales_nip_head", toTable: "users" },
+                { fromTable: "prospects", column: "sales_nip_survey", toTable: "users" },
+                { fromTable: "prospects", column: "sales_phones_id", toTable: "sales_phones" },
+                { fromTable: "prospects", column: "service_packages_id", toTable: "service_packages" },
+                { fromTable: "prospects", column: "metodes_id", toTable: "metodes" },
+                { fromTable: "prospects", column: "reason_use_id", toTable: "reason_uses" },
+                { fromTable: "prospects", column: "status_lokasi_id", toTable: "status_lokasi_dipasangs" },
+                { fromTable: "prospects", column: "coverage_areas_id", toTable: "coverage_areas" },
+                { fromTable: "prospects", column: "spliter_id", toTable: "spliters" },
+                { fromTable: "prospects_places", column: "prospect_id", toTable: "prospects" },
+                { fromTable: "prospects_points", column: "place_id", toTable: "prospects_places" },
+
+                // Coverage / network
+                { fromTable: "routers_vlans", column: "router_id", toTable: "routers" },
+                { fromTable: "olts", column: "router_id", toTable: "routers" },
+                { fromTable: "olts", column: "branch_id", toTable: "branches" },
+                { fromTable: "olts_ports", column: "olt_id", toTable: "olts" },
+                { fromTable: "olts_ports", column: "router_id", toTable: "routers" },
+                { fromTable: "olts_ports", column: "router_vlan_id", toTable: "routers_vlans" },
+                { fromTable: "coverage_areas", column: "branch_id", toTable: "branches" },
+                { fromTable: "coverage_areas", column: "olt_id", toTable: "olts" },
+                { fromTable: "coverage_areas", column: "olt_port_id", toTable: "olts_ports" },
+                { fromTable: "coverage_areas", column: "area_primary_id", toTable: "coverage_areas" },
+                { fromTable: "placements", column: "branch_id", toTable: "branches" },
+                { fromTable: "placements", column: "area_id", toTable: "coverage_areas" },
+                { fromTable: "placements", column: "tiang_id", toTable: "pole" },
+                { fromTable: "pole", column: "branch_id", toTable: "branches" },
+                { fromTable: "pole", column: "persediaan_id", toTable: "persediaans" },
+                { fromTable: "pole", column: "area_id", toTable: "coverage_areas" },
+                { fromTable: "spliters", column: "coverage_areas_id", toTable: "coverage_areas" },
+                { fromTable: "spliters", column: "coverage_areas_primary_id", toTable: "coverage_areas" },
+                { fromTable: "spliters", column: "placement_id", toTable: "placements" },
+                { fromTable: "spliters", column: "parent_id", toTable: "spliters" },
+                { fromTable: "spliters_dampings", column: "spliters_id", toTable: "spliters" },
+                { fromTable: "spliters_route", column: "spliters_id", toTable: "spliters" },
+                { fromTable: "splitter_documents", column: "wo_id", toTable: "distri_work_orders" },
+                { fromTable: "splitter_installations", column: "wo_id", toTable: "distri_work_orders" },
+
+                // Customers
+                { fromTable: "customers", column: "branch_id", toTable: "branches" },
+                { fromTable: "customers", column: "prospects_id", toTable: "prospects" },
+                { fromTable: "customers", column: "service_packages_id", toTable: "service_packages" },
+                { fromTable: "customers", column: "coverage_areas_id", toTable: "coverage_areas" },
+                { fromTable: "customers", column: "spliter_id", toTable: "spliters" },
+                { fromTable: "customers", column: "sales_nip", toTable: "users" },
+                { fromTable: "customers", column: "sales_nip_head", toTable: "users" },
+                { fromTable: "customers", column: "sales_nip_survey", toTable: "users" },
+                { fromTable: "customers", column: "sales_phones_id", toTable: "sales_phones" },
+                { fromTable: "customers", column: "cashback_receiver_id", toTable: "customer_banks" },
+                { fromTable: "customers_alamat_maps", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "customers_alamat_terpasang", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "customers_places", column: "prospect_id", toTable: "prospects" },
+                { fromTable: "customers_points", column: "place_id", toTable: "customers_places" },
+                { fromTable: "customer_document_details", column: "customer_id", toTable: "customers" },
+                { fromTable: "customer_banks", column: "customer_id", toTable: "customers" },
+                { fromTable: "customer_banks", column: "input_by", toTable: "users" },
+                { fromTable: "customer_banks", column: "inactived_by", toTable: "users" },
+                { fromTable: "customers_terminates", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "customers_terminates", column: "spliter_id", toTable: "spliters" },
+                { fromTable: "customers_terminates", column: "kategori_id", toTable: "kategori_customer_terminates" },
+                { fromTable: "history_customer_isolirs", column: "personal_id", toTable: "customers" },
+                { fromTable: "history_layanans", column: "va", toTable: "customers" },
+                { fromTable: "history_layanans", column: "from_pakets_id", toTable: "service_packages" },
+                { fromTable: "history_layanans", column: "to_pakets_id", toTable: "service_packages" },
+                { fromTable: "history_paids", column: "va", toTable: "customers" },
+                { fromTable: "history_paids", column: "messages_id", toTable: "messages" },
+                { fromTable: "recurring_billings", column: "va", toTable: "customers" },
+                { fromTable: "recurring_billings", column: "service_packages_id", toTable: "service_packages" },
+                { fromTable: "recurring_billings", column: "history_paids_id", toTable: "history_paids" },
+                { fromTable: "recuiring_billings_errors", column: "history_paids_id", toTable: "history_paids" },
+                { fromTable: "messages", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "modem_replaces", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "monthly_bills", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "monthly_bills", column: "history_paid_id", toTable: "history_paids" },
+                { fromTable: "retention_api_failures", column: "pppoe_secret", toTable: "customers" },
+
+                // Operations
+                { fromTable: "psb_work_orders", column: "branch_id", toTable: "branches" },
+                { fromTable: "psb_work_orders", column: "current_step_id", toTable: "psb_wo_steps" },
+                { fromTable: "psb_work_orders", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "psb_work_orders", column: "team_id", toTable: "technician_teams" },
+                { fromTable: "psb_work_orders", column: "katim_nip", toTable: "users" },
+                { fromTable: "psb_work_orders", column: "helper_primary_nip", toTable: "users" },
+                { fromTable: "psb_work_orders", column: "helper_secondary_nip", toTable: "users" },
+                { fromTable: "psb_work_orders", column: "kabel_history_id", toTable: "kabel_historys" },
+                { fromTable: "psb_work_orders", column: "kabel_detail_history_id", toTable: "kabel_history_details" },
+                { fromTable: "psb_wo_cuni_log_requests", column: "psb_wo_id", toTable: "psb_work_orders" },
+                { fromTable: "psb_wo_cuni_log_requests", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "psb_wo_logs", column: "psb_wo_id", toTable: "psb_work_orders" },
+                { fromTable: "psb_wo_logs", column: "psb_wo_step_id", toTable: "psb_wo_steps" },
+                { fromTable: "psb_wo_pause_logs", column: "psb_wo_id", toTable: "psb_work_orders" },
+                { fromTable: "psb_wo_pause_logs", column: "psb_wo_step_id", toTable: "psb_wo_steps" },
+                { fromTable: "distri_work_orders", column: "branch_id", toTable: "branches" },
+                { fromTable: "distri_work_orders", column: "spliters_id", toTable: "spliters" },
+                { fromTable: "distri_work_orders", column: "team_id", toTable: "technician_teams" },
+                { fromTable: "distri_work_orders", column: "katim_id", toTable: "users" },
+                { fromTable: "distri_spliters_route", column: "spliters_id", toTable: "spliters" },
+                { fromTable: "technician_teams", column: "branch_company_id", toTable: "branches" },
+                { fromTable: "technician_teams", column: "leader_nip", toTable: "users" },
+                { fromTable: "technician_teams", column: "support_a", toTable: "users" },
+                { fromTable: "technician_teams", column: "support_b", toTable: "users" },
+                { fromTable: "splitter_requests", column: "splitter_id", toTable: "spliters" },
+                { fromTable: "splitter_requests", column: "prospect_id", toTable: "prospects" },
+                { fromTable: "wo_dismantles", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "wo_dismantles", column: "sales_nip", toTable: "users" },
+                { fromTable: "wo_dismantles", column: "assign_by", toTable: "users" },
+                { fromTable: "wo_dismantles", column: "verification_by", toTable: "users" },
+                { fromTable: "wo_dismantle_documents", column: "wo_dismantle_number", toTable: "wo_dismantles" },
+                { fromTable: "wo_dismantle_logs", column: "wo_dismantle_number", toTable: "wo_dismantles" },
+                { fromTable: "wo_dismantle_logs", column: "change_by", toTable: "users" },
+                { fromTable: "wo_isolir", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "wo_isolir", column: "monthly_bill_id", toTable: "monthly_bills" },
+                { fromTable: "wo_isolir", column: "sales_nip", toTable: "users" },
+                { fromTable: "wo_isolir", column: "branch_id", toTable: "branches" },
+                { fromTable: "wo_isolir_visits", column: "wo_isolir_id", toTable: "wo_isolir" },
+                { fromTable: "wo_isolir_visits", column: "monthly_bill_id", toTable: "monthly_bills" },
+                { fromTable: "wo_isolir_visits", column: "sales_nip", toTable: "users" },
+                { fromTable: "wo_isolir_visits", column: "customer_response_id", toTable: "visit_customer_responses" },
+                { fromTable: "wo_isolir_visits", column: "issue_category_id", toTable: "visit_issue_categories" },
+                { fromTable: "wo_isolir_visits", column: "validated_by_nip", toTable: "users" },
+                { fromTable: "wo_terminates", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "wo_terminates", column: "sn_modem", toTable: "modems" },
+                { fromTable: "wo_terminates", column: "created_by", toTable: "users" },
+
+                // Warehouse
+                { fromTable: "persediaans", column: "branch_id", toTable: "branches" },
+                { fromTable: "kabels", column: "branch_id", toTable: "branches" },
+                { fromTable: "kabels", column: "persediaan_id", toTable: "persediaans" },
+                { fromTable: "kabel_historys", column: "kabel_id", toTable: "kabels" },
+                { fromTable: "kabel_historys", column: "karyawan_nip", toTable: "users" },
+                { fromTable: "kabel_history_details", column: "history_kabel_id", toTable: "kabel_historys" },
+                { fromTable: "modems", column: "branch_id", toTable: "branches" },
+                { fromTable: "modems", column: "persediaan_id", toTable: "persediaans" },
+                { fromTable: "modems", column: "return_batch_id", toTable: "modem_batches" },
+                { fromTable: "modems", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "modems_historys", column: "sn_modem", toTable: "modems" },
+                { fromTable: "modems_historys", column: "pppoe_secret", toTable: "customers" },
+                { fromTable: "modems_historys", column: "modem_replace_id", toTable: "modem_replaces" },
+                { fromTable: "modem_batches", column: "branch_id", toTable: "branches" },
+                { fromTable: "modem_batches", column: "created_by", toTable: "users" },
+                { fromTable: "modem_return_batch_details", column: "batch_id", toTable: "modem_batches" },
+                { fromTable: "modem_return_batch_details", column: "sn_modem", toTable: "modems" },
+                { fromTable: "modem_stock_opname_batch_details", column: "batch_id", toTable: "modem_batches" },
+                { fromTable: "modem_stock_opname_batch_details", column: "sn_modem", toTable: "modems" },
+                { fromTable: "modem_must_return", column: "batch_must_id", toTable: "modem_batches" },
+                { fromTable: "modem_must_return", column: "batch_now_id", toTable: "modem_batches" },
+                { fromTable: "modem_must_return", column: "sn_modem", toTable: "modems" }
+            ],
+            tables: {
+                "griya_company": [
+                    { name: "branches", icon: "git-branch", color: "blue", fields: [{name: "id", type: "bigint", key: "pk"}, {name: "company_id", type: "int", key: "fk"}, {name: "regional", type: "varchar"}, {name: "prefix_radius_gateway", type: "varchar"}, {name: "branch_name", type: "varchar"}, {name: "kode_branch", type: "varchar"}, {name: "address", type: "varchar"}, {name: "lat", type: "varchar"}, {name: "lng", type: "varchar"}, {name: "ip_host", type: "varchar"}, {name: "is_nas_juniper", type: "tinyint"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "companies", icon: "briefcase", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "code", type: "varchar"}, {name: "name", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "cohort_payment_thresholds", icon: "percent", color: "blue", fields: [{name: "id", type: "bigint", key: "pk"}, {name: "billing_sequence", type: "tinyint"}, {name: "percentage", type: "decimal"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "divisions", icon: "grid", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "nama_divisi", type: "varchar"}, {name: "created_at", type: "datetime"}, {name: "updated_at", type: "datetime"}] },
+                    { name: "users", icon: "user", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "sales_salary_schema_id", type: "int", key: "fk"}, {name: "is_admin", type: "boolean"}, {name: "role", type: "enum"}, {name: "status_pegawai", type: "enum"}, {name: "off_date", type: "date"}, {name: "nama_lengkap", type: "varchar"}, {name: "full_name", type: "varchar"}, {name: "karyawan_nip", type: "int"}, {name: "division_id", type: "int", key: "fk"}, {name: "password", type: "varchar"}, {name: "remember_token", type: "varchar"}, {name: "refresh_token_expiry", type: "datetime"}, {name: "created_at", type: "datetime"}, {name: "updated_at", type: "datetime"}] },
+                    { name: "service_packages", icon: "wifi", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "nama_layanan", type: "varchar"}, {name: "speed", type: "int"}, {name: "slug", type: "varchar"}, {name: "harga", type: "double"}, {name: "tag", type: "json"}, {name: "formulir", type: "boolean"}, {name: "is_active", type: "tinyint"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "sales_salary_schemas", icon: "dollar-sign", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "schema_name", type: "varchar"}, {name: "base_salary", type: "decimal"}, {name: "survey_rate", type: "decimal"}, {name: "schema_type", type: "enum"}, {name: "effective_from", type: "date"}, {name: "document_url", type: "varchar"}, {name: "is_active", type: "tinyint"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "sales_salary_schema_assignments", icon: "user-check", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "sales_nip", type: "int", key: "fk"}, {name: "sales_salary_schema_id", type: "int", key: "fk"}, {name: "assigned_from", type: "date"}, {name: "assigned_until", type: "date"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "tier_schemas", icon: "bar-chart-2", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "sales_scheme_id", type: "int", key: "fk"}, {name: "min_value", type: "int"}, {name: "max_value", type: "int"}, {name: "amount", type: "decimal"}, {name: "is_active", type: "tinyint"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "cashback_schemas", icon: "gift", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "sales_scheme_id", type: "int", key: "fk"}, {name: "category", type: "enum"}, {name: "max_value_static", type: "int"}, {name: "percentage", type: "tinyint"}, {name: "amount", type: "decimal"}, {name: "is_active", type: "tinyint"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "performance_schemas", icon: "activity", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "sales_scheme_id", type: "int", key: "fk"}, {name: "component", type: "varchar"}, {name: "mode", type: "enum"}, {name: "min_threshold_closing", type: "int"}, {name: "max_threshold_closing", type: "int"}, {name: "percentage", type: "tinyint"}, {name: "is_threshold", type: "tinyint"}, {name: "is_active", type: "tinyint"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "growth_reward_schemas", icon: "trending-up", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "sales_scheme_id", type: "int", key: "fk"}, {name: "amount", type: "decimal"}, {name: "closing_max", type: "int"}, {name: "is_active", type: "tinyint"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "kategori_customer_terminates", icon: "tag", color: "blue", fields: [{name: "id", type: "int", key: "pk"}, {name: "kategori", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] }
+                ],
+                "griya_sales": [
+                    { name: "cold_prospects", icon: "user-plus", color: "orange", fields: [{name: "id_cold_prospect", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "input_by", type: "int", key: "fk"}, {name: "own_by", type: "int", key: "fk"}, {name: "lat_sales", type: "decimal"}, {name: "lng_sales", type: "decimal"}, {name: "history_status_id", type: "int", key: "fk"}, {name: "status_id_now", type: "int", key: "fk"}, {name: "status_id_awal", type: "int", key: "fk"}, {name: "nama", type: "varchar"}, {name: "no_tlp", type: "varchar"}, {name: "alamat", type: "varchar"}, {name: "rt", type: "varchar"}, {name: "rw", type: "varchar"}, {name: "lat", type: "varchar"}, {name: "lng", type: "varchar"}, {name: "is_lost", type: "tinyint"}, {name: "have_formulir", type: "boolean"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "prospects", icon: "user-check", color: "orange", fields: [{name: "id", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "cold_prospect_id", type: "int", key: "fk"}, {name: "sales_nip_head", type: "int", key: "fk"}, {name: "role", type: "varchar"}, {name: "sales_nip", type: "int", key: "fk"}, {name: "sales_phones_id", type: "int", key: "fk"}, {name: "sales_nip_survey", type: "int", key: "fk"}, {name: "type_customer", type: "int"}, {name: "status_lokasi_id", type: "int", key: "fk"}, {name: "migrasi_user", type: "boolean"}, {name: "reason_use_id", type: "int", key: "fk"}, {name: "nama", type: "varchar"}, {name: "alamat", type: "varchar"}, {name: "service_packages_id", type: "varchar", key: "fk"}, {name: "metodes_id", type: "varchar", key: "fk"}, {name: "coverage_areas_id", type: "varchar", key: "fk"}, {name: "spliter_id", type: "varchar", key: "fk"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "ddl_status", icon: "list", color: "orange", fields: [{name: "id_status", type: "int", key: "pk"}, {name: "nama_status", type: "varchar"}, {name: "is_ddl", type: "boolean"}, {name: "is_ddl_sales", type: "boolean"}] },
+                    { name: "history_status", icon: "clock", color: "orange", fields: [{name: "id_history_status", type: "int", key: "pk"}, {name: "cold_prospect_id", type: "int", key: "fk"}, {name: "status_id", type: "int", key: "fk"}, {name: "status_ke", type: "int"}, {name: "follow_up_ke", type: "int"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "history_messages", icon: "message-circle", color: "orange", fields: [{name: "id_history_message", type: "int", key: "pk"}, {name: "history_status_id", type: "int", key: "fk"}, {name: "from_me", type: "boolean"}, {name: "message", type: "text"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "template_follow_ups", icon: "file-text", color: "orange", fields: [{name: "id_follow_up", type: "int", key: "pk"}, {name: "status_id", type: "int", key: "fk"}, {name: "no_follow_ups", type: "int"}, {name: "keterangan", type: "enum"}, {name: "message", type: "text"}] },
+                    { name: "formulir_urls", icon: "link", color: "orange", fields: [{name: "id_formulir_url", type: "char", key: "pk"}, {name: "cold_prospect_id", type: "int", key: "fk"}] },
+                    { name: "history_formulirs", icon: "clipboard", color: "orange", fields: [{name: "id", type: "int", key: "pk"}, {name: "url_id", type: "char", key: "fk"}, {name: "nama", type: "varchar"}, {name: "no_tlp", type: "varchar"}, {name: "is_complete", type: "boolean"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "formulirs_one_steps", icon: "edit-3", color: "orange", fields: [{name: "id", type: "int", key: "pk"}, {name: "is_used_before", type: "boolean"}, {name: "prospect_id", type: "int", key: "fk"}, {name: "nama_step_one", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "sales_phones", icon: "smartphone", color: "orange", fields: [{name: "id_sales_phones", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "provider", type: "varchar"}, {name: "no_tlp", type: "varchar"}, {name: "sales_nip", type: "int", key: "fk"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "metodes", icon: "layers", color: "orange", fields: [{name: "id", type: "int", key: "pk"}, {name: "metode", type: "varchar"}, {name: "used", type: "boolean"}, {name: "formulir", type: "boolean"}, {name: "sales", type: "boolean"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "providers", icon: "globe", color: "orange", fields: [{name: "id", type: "int", key: "pk"}, {name: "provider", type: "varchar"}] },
+                    { name: "reason_uses", icon: "help-circle", color: "orange", fields: [{name: "id_reason_use", type: "int", key: "pk"}, {name: "alasan", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "status_lokasi_dipasangs", icon: "map-pin", color: "orange", fields: [{name: "id_status_lokasi_dipasang", type: "int", key: "pk"}, {name: "nama_status", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "cold_prospects_charts", icon: "pie-chart", color: "orange", fields: [{name: "id_cold_prospect_chart", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "branch_name", type: "varchar"}, {name: "karyawan_nip", type: "int", key: "fk"}, {name: "periode_date", type: "date"}, {name: "rekap_pagi", type: "int"}, {name: "rekap_malam", type: "int"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] }
+                ],
+                "griya_coverage": [
+                    { name: "routers", icon: "server", color: "purple", fields: [{name: "id_router", type: "int", key: "pk"}, {name: "router_ke", type: "int"}, {name: "lokasipop", type: "varchar"}, {name: "ip_address", type: "varchar"}, {name: "port_snmp_router", type: "int"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "routers_vlans", icon: "shuffle", color: "purple", fields: [{name: "id_router_vlan", type: "int", key: "pk"}, {name: "router_id", type: "int", key: "fk"}, {name: "pppoe_vlan_id", type: "int"}, {name: "hotspot_vlan_id", type: "int"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "olts", icon: "hard-drive", color: "purple", fields: [{name: "id_olt", type: "int", key: "pk"}, {name: "olt_ke", type: "int"}, {name: "branch_id", type: "int", key: "fk"}, {name: "router_id", type: "int", key: "fk"}, {name: "type", type: "varchar"}, {name: "port_snmp", type: "int"}, {name: "port_telnet", type: "int"}, {name: "community_ro", type: "varchar"},{name: "remote_vlan_id_backup", type: "int"},{name: "pppoe_vlan_id_backup", type: "int"}, {name: "hotspot_vlan_id_backup", type: "int"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "olts_ports", icon: "git-merge", color: "purple", fields: [{name: "id_olt_port", type: "int", key: "pk"}, {name: "olt_id", type: "int", key: "fk"}, {name: "router_id", type: "int", key: "fk"}, {name: "router_vlan_id", type: "int", key: "fk"}, {name: "slot_ke", type: "int"}, {name: "port_ke", type: "int"}, {name: "kode_olt", type: "int"}, {name: "olt", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "coverage_areas", icon: "map", color: "purple", fields: [{name: "id", type: "int", key: "pk"}, {name: "polygon", type: "json"}, {name: "branch_id", type: "int", key: "fk"}, {name: "olt_id", type: "int", key: "fk"}, {name: "olt_port_id", type: "int", key: "fk"}, {name: "nama_area", type: "varchar"}, {name: "kode_area", type: "varchar"}, {name: "olt_backup", type: "varchar"}, {name: "kode_olt_backup", type: "varchar"},{name: "open_area", type: "date"}, {name: "penanggung_jawab", type: "varchar"}, {name: "no_tlpn", type: "varchar"}, {name: "file_proposal", type: "varchar"},{name: "file_bak", type: "varchar"},{name: "area_primary_id", type: "int", key: "fk"}, {name: "old_name_area", type: "varchar"},{name: "is_primary", type: "boolean"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "placements", icon: "crosshair", color: "purple", fields: [{name: "id", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "area_id", type: "int", key: "fk"}, {name: "nama_tempat", type: "varchar"}, {name: "tiang_id", type: "int", key: "fk"}, {name: "jenis_tempat", type: "varchar"}, {name: "alamat", type: "varchar"},{name: "lat", type: "varchar"}, {name: "lng", type: "varchar"},{name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "pole", icon: "git-commit", color: "purple", fields: [{name: "id", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "persediaan_id", type: "int", key: "fk"}, {name: "ref", type: "varchar"}, {name: "vendor", type: "varchar"}, {name: "tinggi", type: "varchar"}, {name: "ukuran", type: "varchar"}, {name: "tebal", type: "varchar"},{name: "harga", type: "varchar"}, {name: "nama_tiang", type: "varchar"}, {name: "area_id", type: "varchar", key: "fk"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "spliters", icon: "share-2", color: "purple", fields: [{name: "id", type: "bigint", key: "pk"}, {name: "coverage_areas_primary_id", type: "int", key: "fk"}, {name: "coverage_areas_id", type: "varchar", key: "fk"}, {name: "type_spliter", type: "varchar"}, {name: "parent_id", type: "varchar", key: "fk"}, {name: "area_ke", type: "varchar"},{name: "parent_ke", type: "varchar"},{name: "spliter_ke", type: "int"},{name: "jumlah_output", type: "int"}, {name: "placement_id", type: "bigint", key: "fk"}, {name: "is_ready", type: "boolean"}, {name: "status", type: "enum"},{name: "family_status", type: "varchar"},{name: "parent_access_id", type: "int"} , {name: "is_show", type: "tinyint"},{name: "status_route", type: "varchar"},{name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "spliters_dampings", icon: "zap", color: "purple", fields: [{name: "spliters_dampings_id", type: "int", key: "pk"}, {name: "spliters_id", type: "int", key: "fk"}, {name: "input", type: "float"}, {name: "p1", type: "float"}, {name: "p2", type: "float"}, {name: "p3", type: "float"}, {name: "p4", type: "float"}, {name: "p5", type: "float"},{name: "p6", type: "float"},{name: "p7", type: "float"},{name: "p8", type: "float"},{name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "spliters_route", icon: "navigation", color: "purple", fields: [{name: "id_route", type: "int", key: "pk"}, {name: "spliters_id", type: "int", key: "fk"}, {name: "length", type: "varchar"},{name: "length_text", type: "varchar"}, {name: "info", type: "varchar"}, {name: "points", type: "json"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "splitter_documents", icon: "paperclip", color: "purple", fields: [{name: "id_document", type: "int", key: "pk"}, {name: "wo_id", type: "int", key: "fk"}, {name: "port_ke", type: "int"}, {name: "category", type: "varchar"}, {name: "url", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "splitter_installations", icon: "tool", color: "purple", fields: [{name: "id_installation", type: "int", key: "pk"}, {name: "wo_id", type: "int", key: "fk"}, {name: "category", type: "varchar"}, {name: "url", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] }
+                ],
+                "griya_customers": [
+                    { name: "customers", icon: "users", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "prospects_id", type: "int", key: "fk"}, {name: "sales_nip_head", type: "int", key: "fk"},{name: "role", type: "varchar"},{name: "sales_nip", type: "int", key: "fk"}, {name: "sales_phones_id", type: "int", key: "fk"},{name: "sales_nip_survey", type: "int", key: "fk"},{name: "type_customer", type: "int"},{name: "pppoe_secret", type: "varchar"}, {name: "nama", type: "varchar"}, {name: "no_tlp", type: "varchar"}, {name: "resourcename", type: "varchar"},{name: "service_packages_id", type: "int", key: "fk"}, {name: "coverage_areas_id", type: "int", key: "fk"}, {name: "spliter_id", type: "int", key: "fk"}, {name: "sn_modem", type: "varchar"}, {name: "no_onu", type: "int"},{name: "pppoe_vlan_id", type: "int"},{name: "hotspot_vlan_id", type: "int"},{name: "olt_rx", type: "float"},{name: "onu_rx", type: "float"},{name: "va", type: "varchar"}, {name: "subscribe_start", type: "date"}, {name: "subscribe_expired", type: "date"}, {name: "subscribe_status", type: "enum"},{name: "cashback_receiver_id", type: "int", key: "fk"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "customers_alamat_maps", icon: "map-pin", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "pppoe_secret", type: "varchar", key: "fk"}, {name: "m_type", type: "varchar"},{name: "m_no", type: "varchar"},{name: "m_jln", type: "varchar"},{name: "m_kel", type: "varchar"},{name: "m_kec", type: "varchar"},{name: "m_kota", type: "varchar"}, {name: "lat", type: "varchar"}, {name: "lng", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "customers_alamat_terpasang", icon: "home", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "pppoe_secret", type: "varchar", key: "fk"}, {name: "alamat", type: "varchar"}, {name: "rt", type: "varchar"}, {name: "rw", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "customers_places", icon: "map", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "prospect_id", type: "bigint", key: "fk"},{name: "length", type: "varchar"}, {name: "length_text", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "customers_points", icon: "crosshair", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "place_id", type: "bigint", key: "fk"}, {name: "lat", type: "varchar"}, {name: "lng", type: "varchar"},{name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "customer_document_details", icon: "file", color: "green", fields: [{name: "id_detail_dokumen", type: "int", key: "pk"}, {name: "customer_id", type: "int", key: "fk"}, {name: "url", type: "varchar"}, {name: "category", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "customer_banks", icon: "credit-card", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "customer_id", type: "int", key: "fk"},{name: "inactived_by", type: "int", key: "fk"},{name: "input_by", type: "int", key: "fk"},{name: "inquiry_key", type: "text"}, {name: "bank_code", type: "varchar"}, {name: "bank_name", type: "varchar"}, {name: "fee_transfer", type: "double"},{name: "account_holder", type: "varchar"}, {name: "account_number", type: "varchar"}, {name: "status", type: "varchar"},{name: "account_status", type: "varchar"}, {name: "is_blocked", type: "boolean"},{name: "approve_datetime", type: "timestamp"},{name: "inactive_reason", type: "varchar"},{name: "inactive_datetime", type: "varchar"},{name: "last_chat_datetime", type: "timestamp"},{name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "customers_terminates", icon: "user-x", color: "green", fields: [{name: "id_terminate", type: "int", key: "pk"}, {name: "pppoe_secret", type: "varchar", key: "fk"}, {name: "status_berlangganan", type: "varchar"}, {name: "spliter_id", type: "int", key: "fk"},{name: "port_access", type: "int"}, {name: "no_onu", type: "int"},{name: "path_bukti_chat", type: "varchar"},{name: "date_terminate", type: "date"}, {name: "kategori_id", type: "varchar", key: "fk"}, {name: "keterangan", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "customer_aktifs", icon: "bar-chart", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "total_customer", type: "int"}, {name: "periode", type: "date"}, {name: "created_at", type: "timestamp"}] },
+                    { name: "history_customer_isolirs", icon: "slash", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "personal_id", type: "int", key: "fk"}, {name: "date_isolir", type: "date"}, {name: "time", type: "time"},{name: "is_isolir", type: "boolean"},{name: "is_hm2_msg", type: "boolean"},{name: "is_hm0_msg", type: "boolean"},{name: "is_hp7_msg", type: "boolean"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "history_layanans", icon: "repeat", color: "green", fields: [{name: "id_history_layanans", type: "int", key: "pk"}, {name: "va", type: "varchar", key: "fk"}, {name: "status", type: "varchar"}, {name: "subscribe_expired", type: "date"},{name: "from_pakets_id", type: "int", key: "fk"}, {name: "to_pakets_id", type: "int", key: "fk"},{name: "is_apply", type: "boolean"},{name: "apply_time", type: "timestamp"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "history_paids", icon: "dollar-sign", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "trx_id", type: "varchar"}, {name: "merchant_id", type: "varchar"},{name: "merchant", type: "varchar"},{name: "channel", type: "varchar"}, {name: "va", type: "varchar", key: "fk"},{name: "payment_reff", type: "varchar"} ,{name: "payment_date", type: "datetime"}, {name: "payment_status_code", type: "varchar"},{name: "payment_status_decsc", type: "varchar"},{name: "bill_total", type: "varchar"},{name: "payment_total", type: "varchar"}, {name: "payment_channel_uid", type: "varchar"},{name: "payment_channel", type: "varchar"},{name: "signature", type: "varchar"},{name: "subscribe_status", type: "varchar"},{name: "messages_id", type: "int", key: "fk"},{name: "diffBayar", type: "smallint"}, {name: "kirim_accounting", type: "boolean"},{name: "kirim_accounting_griya", type: "boolean"},{name: "kirim_wa", type: "boolean"},{name: "hidupkan_radius", type: "boolean"},{name: "tipe_transaksi", type: "varchar"},{name: "exp_date", type: "date"},{name: "tgl_jatuh_tempo_sebelumnya", type: "date"},{name: "tgl_jatuh_tempo_selanjutnya", type: "date"},{name: "nominal_discount", type: "int"},{name: "slug_paket", type: "varchar"},{name: "created_at", type: "timestamp"}] },
+                    { name: "recurring_billings", icon: "refresh-cw", color: "green", fields: [{name: "id_recurring_billing", type: "int", key: "pk"}, {name: "va", type: "varchar", key: "fk"}, {name: "service_packages_id", type: "int", key: "fk"}, {name: "subscribe_status", type: "varchar"},{name: "exp_date", type: "date"}, {name: "amount", type: "double"},{name: "terbayar", type: "tinyint"}, {name: "history_paids_id", type: "int", key: "fk"}, {name: "created_at", type: "timestamp"},{name: "modified", type: "datetime"}] },
+                    { name: "recuiring_billings_errors", icon: "message-square-warning", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "history_paids_id", type: "int", key: "fk"}, {name: "keterangan", type: "varchar"}, {name: "created_at", type: "timestamp"}] },
+                    { name: "monthly_bills", icon: "calendar", color: "green", fields: [{name: "id", type: "bigint", key: "pk"}, {name: "pppoe_secret", type: "varchar", key: "fk"}, {name: "history_paid_id", type: "int", key: "fk"}, {name: "period", type: "date"}, {name: "billing_sequence", type: "int"}, {name: "expired_date", type: "date"}, {name: "subscribe_status_in_payment", type: "enum"}, {name: "recurring_status", type: "enum"}, {name: "diff_payment", type: "int"}, {name: "bill_total", type: "double"}, {name: "discount", type: "double"}, {name: "payment_total", type: "double"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "retention_api_failures", icon: "alert-triangle", color: "green", fields: [{name: "id", type: "bigint", key: "pk"}, {name: "pppoe_secret", type: "varchar", key: "fk"}, {name: "request_payload", type: "json"}, {name: "error_message", type: "text"}, {name: "error_status", type: "int"}, {name: "attempts", type: "int"}, {name: "last_attempt_at", type: "datetime"}, {name: "resolved_at", type: "datetime"}, {name: "created_at", type: "datetime"}, {name: "updated_at", type: "datetime"}] },
+                    { name: "messages", icon: "message-square", color: "green", fields: [{name: "id_messages", type: "int", key: "pk"}, {name: "error", type: "tinyint"},{name: "error_timstamp", type: "timestamp"},{name: "status_pesan", type: "varchar"}, {name: "subscribe_expired_messages", type: "date"},{name: "pppoe_secret", type: "varchar", key: "fk"}, {name: "terbayar", type: "boolean"}, {name: "pesan_terkirim", type: "boolean"},{name: "pesan_terkirim_tmstamp", type: "timestamp"},{name: "radius_off", type: "timestamp"},{name: "radius_off_tmstamp", type: "timestamp"},{name: "created_at", type: "timestamp"}] },
+                    { name: "messages_error_logs", icon: "message-circle-off", color: "green", fields: [{name: "id", type: "int", key: "pk"}, {name: "pos", type: "varchar"}, {name: "couse", type: "varchar"}, {name: "created_at", type: "timestamp"}] },
+                    { name: "modem_replaces", icon: "refresh-ccw", color: "green", fields: [{name: "id_modem_replace", type: "int", key: "pk"}, {name: "status", type: "varchar"},{name: "Status_progress", type: "varchar"},{name: "pppoe_secret", type: "varchar", key: "fk"}, {name: "sn_lama", type: "varchar"}, {name: "sn_baru", type: "varchar"}, {name: "keterangan", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] }
+                ],
+                "griya_oprasional": [
+                    { name: "psb_work_orders", icon: "clipboard", color: "red", fields: [{ name: "id", type: "int", key: "pk" }, { name: "branch_id", type: "int", key: "fk" }, { name: "status_wo", type: "varchar" }, { name: "current_step_id", type: "bigint", key: "fk" }, { name: "status_proggres", type: "varchar" }, { name: "is_paused", type: "boolean" }, { name: "is_active", type: "boolean" }, { name: "is_regist", type: "boolean" }, { name: "is_route_revised_by_bl", type: "boolean" }, { name: "pppoe_secret", type: "varchar", key: "fk" }, { name: "team_id", type: "int", key: "fk" }, { name: "katim_nip", type: "int",key: "fk"}, { name: "helper_primary_nip", type: "int",key: "fk" }, { name: "helper_secondary_nip", type: "int",key: "fk" }, { name: "tgl_jadwal", type: "date" }, { name: "phase", type: "int" }, { name: "start", type: "datetime" }, { name: "end", type: "datetime" }, { name: "total_waktu_penarikan", type: "smallint" }, { name: "status_kabel", type: "varchar" }, { name: "kabel_history_id", type: "int",key: "fk" }, { name: "kabel_detail_history_id", type: "int",key: "fk" }, { name: "start_dropcore", type: "smallint" }, { name: "end_dropcore", type: "smallint" }, { name: "total_dropcore", type: "smallint" }, { name: "lepas_port", type: "boolean" }, { name: "pppoe_secret_cabut", type: "varchar" }, { name: "is_abnormal", type: "boolean" }, { name: "is_abnormal_asset_modem", type: "boolean" }, { name: "is_abnormal_modem", type: "boolean" }, { name: "keterangan_abnormal_modem", type: "varchar" }, { name: "kategori_abnormal_durasi", type: "text" }, { name: "keterangan_abnormal_durasi", type: "text" }, { name: "kategori_abnormal_jalur", type: "text" }, { name: "keterangan_abnormal_jalur", type: "text" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "psb_wo_steps", icon: "list-ordered", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "code", type: "char" }, { name: "code_progress", type: "varchar" }, { name: "name", type: "varchar" }, { name: "description", type: "varchar" }, { name: "order", type: "int" }, { name: "is_last", type: "boolean" }, { name: "is_pausable", type: "boolean" }, { name: "is_picture", type: "boolean" }, { name: "is_data", type: "boolean" }, { name: "is_active", type: "boolean" }, { name: "variables", type: "json" }, { name: "default_variables", type: "json" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }, { name: "deleted_at", type: "timestamp" }] },
+                    { name: "psb_wo_logs", icon: "history", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "psb_wo_id", type: "int", key: "fk" }, { name: "psb_wo_step_id", type: "bigint", key: "fk" }, { name: "started_at", type: "datetime" }, { name: "ended_at", type: "datetime" }, { name: "duration_seconds", type: "int" }, { name: "current_data", type: "json" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "psb_wo_pause_logs", icon: "pause-circle", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "psb_wo_id", type: "int", key: "fk" }, { name: "psb_wo_step_id", type: "bigint", key: "fk" }, { name: "paused_at", type: "datetime" }, { name: "continued_at", type: "datetime" }, { name: "duration_seconds", type: "int" }, { name: "reason", type: "text" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "psb_wo_cuni_log_requests", icon: "send", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "psb_wo_id", type: "int", key: "fk" }, { name: "pppoe_secret", type: "varchar", key: "fk" }, { name: "payload", type: "json" }, { name: "response", type: "json" }, { name: "response_status", type: "smallint" }, { name: "error_message", type: "text" }, { name: "is_retried", type: "boolean" }, { name: "is_success_retried", type: "boolean" }, { name: "retry_attempts", type: "int" }, { name: "last_attempt_at", type: "timestamp" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "migrations", icon: "database", color: "red", fields: [{ name: "id", type: "int", key: "pk" }, { name: "migration", type: "varchar" }, { name: "batch", type: "int" }] },
+                    { name: "distri_work_orders", icon: "truck", color: "red", fields: [{ name: "distri_work_orders_id", type: "int", key: "pk" }, { name: "branch_id", type: "int", key: "fk" }, { name: "spliters_id", type: "int", key: "fk" }, { name: "req_by", type: "varchar" }, { name: "proggress", type: "varchar" }, { name: "status_akhir", type: "varchar" }, { name: "team_id", type: "int", key: "fk" }, { name: "katim_id", type: "int",key: "fk" }, { name: "tgl_jadwal", type: "date" }, { name: "phase", type: "int" }, { name: "start", type: "datetime" }, { name: "end", type: "datetime" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "distri_spliters_route", icon: "navigation-2", color: "red", fields: [{name: "id_route", type: "int", key: "pk"}, {name: "spliters_id", type: "int", key: "fk"}, {name: "length", type: "varchar"},{name: "length_text", type: "varchar"},{name: "info", type: "varchar"}, {name: "points", type: "json"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },                    
+                    { name: "technician_teams", icon: "users", color: "red", fields: [{name: "id", type: "int", key: "pk"}, {name: "branch_company_id", type: "int", key: "fk"}, {name: "nama_team", type: "varchar"}, {name: "kategori_team", type: "enum"}, {name: "leader_nip", type: "int", key: "fk"},{name: "support_a", type: "int"},{name: "support_b", type: "int"}, {name: "is_active", type: "boolean"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "wo_dismantles", icon: "hammer", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "sales_nip", type: "bigint", key: "fk" }, { name: "assign_by", type: "bigint",key: "fk" }, { name: "verification_by", type: "bigint",key: "fk" }, { name: "wo_dismantle_number", type: "varchar" }, { name: "pppoe_secret", type: "varchar", key: "fk" }, { name: "chance_ae", type: "int" }, { name: "accuracy_ae", type: "varchar" }, { name: "wo_dismantle_date", type: "date" }, { name: "wo_suggest_time", type: "time" }, { name: "wo_close_date", type: "date" }, { name: "wo_reschedule_date", type: "date" }, { name: "wo_reschedule_reason", type: "text" }, { name: "wo_reschedule_proof_path", type: "varchar" }, { name: "result_wo_dismantle", type: "varchar" }, { name: "decision_wo_dismantle", type: "varchar" }, { name: "status_wo_dismantle", type: "varchar" }, { name: "wo_information", type: "text" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "wo_dismantle_documents", icon: "image", color: "red", fields: [{name: "id", type: "bigint", key: "pk"}, {name: "wo_dismantle_number", type: "varchar", key: "fk"}, {name: "path", type: "varchar"}, {name: "type", type: "enum"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "wo_dismantle_logs", icon: "list", color: "red", fields: [{name: "id", type: "bigint", key: "pk"}, {name: "wo_dismantle_number", type: "varchar", key: "fk"}, {name: "old_status", type: "enum"}, {name: "new_status", type: "enum"},{name: "created_log", type: "datetime"},{name: "change_by", type: "bigint", key: "fk"} ,{name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "wo_isolir", icon: "shield-alert", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "pppoe_secret", type: "varchar", key: "fk" }, { name: "monthly_bill_id", type: "bigint", key: "fk" }, { name: "expired_date", type: "date" }, { name: "sales_nip", type: "int", key: "fk" }, { name: "branch_id", type: "bigint", key: "fk" }, { name: "status", type: "enum" }, { name: "closed_reason", type: "enum" }, { name: "opened_at", type: "timestamp" }, { name: "closed_at", type: "timestamp" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }, { name: "deleted_at", type: "timestamp" }] },
+                    { name: "wo_isolir_visits", icon: "map-pin", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "wo_isolir_id", type: "bigint", key: "fk" }, { name: "monthly_bill_id", type: "bigint", key: "fk" }, { name: "visit_date", type: "date" }, { name: "sales_nip", type: "int", key: "fk" }, { name: "customer_response_id", type: "bigint", key: "fk" }, { name: "issue_category_id", type: "bigint", key: "fk" }, { name: "description", type: "varchar" }, { name: "image_url", type: "varchar" }, { name: "lat", type: "decimal" }, { name: "lng", type: "decimal" }, { name: "validation_status", type: "enum" }, { name: "validated_by_nip", type: "int", key: "fk" }, { name: "validated_at", type: "timestamp" }, { name: "validation_note", type: "varchar" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "visit_customer_responses", icon: "message-circle", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "name", type: "varchar" }, { name: "sort_order", type: "smallint" }, { name: "is_active", type: "boolean" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "visit_issue_categories", icon: "alert-circle", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "name", type: "varchar" }, { name: "sort_order", type: "smallint" }, { name: "is_active", type: "boolean" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "wo_terminates", icon: "x-circle", color: "red", fields: [{ name: "id", type: "bigint", key: "pk" }, { name: "created_by", type: "bigint" }, { name: "pppoe_secret", type: "varchar", key: "fk" }, { name: "sn_modem", type: "varchar", key: "fk" }, { name: "suggest_date", type: "date" }, { name: "suggest_time", type: "time" }, { name: "completion_date", type: "date" }, { name: "decision_wo_terminate", type: "varchar" }, { name: "status_wo_terminate", type: "varchar" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "prospects_places", icon: "map", color: "red", fields: [{name: "id", type: "int", key: "pk"}, {name: "prospect_id", type: "bigint", key: "fk"}, {name: "length", type: "varchar"},{name: "length_text", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "prospects_points", icon: "map-pin-house", color: "red", fields: [{name: "id", type: "int", key: "pk"}, {name: "place_id", type: "bigint", key: "fk"}, {name: "lat", type: "varchar"},{name: "lng", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "splitter_requests", icon: "inbox", color: "red", fields: [{name: "id_splitter_request", type: "int", key: "pk"},{name: "warning_type", type: "varchar"}, {name: "splitter_id", type: "int", key: "fk"}, {name: "prospect_id", type: "int", key: "fk"}, {name: "status", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] }
+                ],
+                "griya_warehouse": [
+                    { name: "persediaans", icon: "package", color: "yellow", fields: [{name: "id_persediaan", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "reff", type: "varchar"}, {name: "jenis", type: "varchar"}, {name: "merek", type: "varchar"},{name: "type", type: "varchar"},{name: "spesifikasi", type: "varchar"}, {name: "total_harga", type: "int"}, {name: "banyaknya", type: "mediumint"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "kabels", icon: "git-commit", color: "yellow", fields: [{name: "id_kabel", type: "int", key: "pk"}, {name: "branch_id", type: "int", key: "fk"}, {name: "persediaan_id", type: "int", key: "fk"}, {name: "no_urut", type: "int"},{name: "status", type: "varchar"}, {name: "panjang_kabel", type: "mediumint"}, {name: "start", type: "smallint"},{name: "end", type: "mediumint"},{name: "harga_per_hasbel", type: "varchar"},{name: "harga_per_meter", type: "varchar"},{name: "date_start", type: "datetime"},{name: "date_end", type: "date_time"},{name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "kabel_historys", icon: "clock", color: "yellow", fields: [{ name: "id_kabel_history", type: "int", key: "pk" }, { name: "kabel_id", type: "int", key: "fk" }, { name: "type_transaksi", type: "varchar" }, { name: "is_active", type: "boolean" }, { name: "is_wo_active", type: "boolean" }, { name: "panjang_kabel_h", type: "int" }, { name: "start_h", type: "int" }, { name: "end_h", type: "int" }, { name: "keterangan", type: "varchar" }, { name: "karyawan_nip", type: "bigint" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "kabel_history_details", icon: "file-text", color: "yellow", fields: [{ name: "id_kabel_detail_history", type: "int", key: "pk" }, { name: "history_kabel_id", type: "int", key: "fk" }, { name: "status_pemakaian", type: "varchar" }, { name: "start_d", type: "int" }, { name: "end_d", type: "int" }, { name: "is_kabel_sisa", type: "tinyint" }, { name: "karyawan_nip_use_kabel_sisa", type: "varchar" }, { name: "is_printed", type: "tinyint" }, { name: "panjang_terpakai", type: "int" }, { name: "panjang_tidak_terpakai", type: "int" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "cable_brands", icon: "bookmark", color: "yellow", fields: [{name: "id", type: "int", key: "pk"}, {name: "nama_brand", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "modems", icon: "box", color: "yellow", fields: [{ name: "id", type: "int", key: "pk" }, { name: "branch_id", type: "int", key: "fk" }, { name: "return_batch_id", type: "int", key: "fk" }, { name: "persediaan_id", type: "int", key: "fk" }, { name: "ref", type: "varchar" }, { name: "supplier", type: "varchar" }, { name: "brand", type: "varchar" }, { name: "type", type: "varchar" }, { name: "connector", type: "varchar" }, { name: "sn", type: "varchar" }, { name: "harga", type: "int" }, { name: "tanggal_belanja", type: "date" }, { name: "status", type: "varchar" }, { name: "pppoe_secret", type: "varchar", key: "fk" }, { name: "action_modem_date", type: "date" }, { name: "scanned_modem_date", type: "date" }, { name: "deleted_at", type: "timestamp" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "modems_historys", icon: "rotate-cw", color: "yellow", fields: [{ name: "id_modem_history", type: "int", key: "pk" }, { name: "sn_modem", type: "varchar", key: "fk" }, { name: "pppoe_secret", type: "varchar", key: "fk" }, { name: "start_using", type: "date" }, { name: "end_using", type: "date" }, { name: "couse_stop", type: "varchar" }, { name: "modem_replace_id", type: "varchar", key: "fk" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "modem_batches", icon: "layers", color: "yellow", fields: [{ name: "id", type: "int", key: "pk" }, { name: "batch_code", type: "varchar" }, { name: "branch_id", type: "int", key: "fk" }, { name: "batch_date", type: "date" }, { name: "batch_type", type: "enum" }, { name: "total_terminate", type: "int" }, { name: "total_replace", type: "int" }, { name: "total_lost", type: "int" }, { name: "total_ready", type: "int" }, { name: "total", type: "int" }, { name: "created_by", type: "int", key: "fk" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "modem_return_batches", icon: "archive", color: "yellow", fields: [{ name: "id", type: "int", key: "pk" }, { name: "batch_code", type: "varchar" }, { name: "branch_id", type: "int", key: "fk" }, { name: "batch_date", type: "date" }, { name: "total_terminate", type: "int" }, { name: "total_replace", type: "int" }, { name: "total_lost", type: "int" }, { name: "total", type: "int" }, { name: "created_by", type: "int", key: "fk" }, { name: "created_at", type: "timestamp" }, { name: "updated_at", type: "timestamp" }] },
+                    { name: "modem_return_batch_details", icon: "list", color: "yellow", fields: [{name: "id", type: "int", key: "pk"}, {name: "batch_id", type: "int", key: "fk"}, {name: "sn_modem", type: "char", key: "fk"}, {name: "status_before", type: "char"}, {name: "status_after", type: "char"},{name: "scan_type", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "modem_stock_opname_batch_details", icon: "clipboard-check", color: "yellow", fields: [{name: "id", type: "bigint", key: "pk"}, {name: "batch_id", type: "int", key: "fk"}, {name: "sn_modem", type: "varchar", key: "fk"}, {name: "status_stock_opname", type: "varchar"}, {name: "scan_type", type: "enum"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "modem_must_return", icon: "alert-octagon", color: "yellow", fields: [{name: "id", type: "int", key: "pk"}, {name: "batch_must_id", type: "int", key: "fk"},{name: "batch_now_id", type: "int", key: "fk"}, {name: "sn_modem", type: "varchar", key: "fk"}, {name: "status", type: "varchar"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] },
+                    { name: "qc_belanja", icon: "check-square", color: "yellow", fields: [{name: "id_qc_belanja", type: "int", key: "pk"}, {name: "nama_vendor", type: "int"}, {name: "created_at", type: "timestamp"}, {name: "updated_at", type: "timestamp"}] }
+                ]
+            }
+        };
+
+        // Flatten all tables into a single searchable array while retaining schema metadata
+        const allTables = [];
+        const schemaMap = {};
+        dbData.schemas.forEach(s => {
+            schemaMap[s.id] = s;
+            const tables = dbData.tables[s.id] || [];
+            tables.forEach(t => {
+                const outgoingRels = dbData.relations.filter(r => r.fromTable === t.name);
+                const incomingRels = dbData.relations.filter(r => r.toTable === t.name);
+                allTables.push({
+                    ...t,
+                    schemaId: s.id,
+                    schemaName: s.name,
+                    schemaDescription: s.description,
+                    badgeClass: s.badgeClass,
+                    dotClass: s.dotClass,
+                    outgoingRelations: outgoingRels,
+                    incomingRelations: incomingRels
+                });
+            });
+        });
+
+        // Map table name -> schemaId for quick reference lookup
+        const tableToSchemaMap = {};
+        allTables.forEach(t => {
+            tableToSchemaMap[t.name] = t.schemaId;
+        });
+
+        // State
+        let activeSchema = "all";
+        let searchQuery = "";
+        let isErdVisible = false;
+
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const schemaFilter = document.getElementById('schemaFilter');
+        const themeToggle = document.getElementById('themeToggle');
+        const sidebarNav = document.getElementById('sidebarNav');
+        const schemaPills = document.getElementById('schemaPills');
+        const tablesContainer = document.getElementById('tablesContainer');
+        const emptySearch = document.getElementById('emptySearch');
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+        const erdContainer = document.getElementById('erdContainer');
+        const statsBanner = document.getElementById('statsBanner');
+        const sidebarContainer = document.getElementById('sidebarContainer');
+        const searchWrapper = document.getElementById('searchWrapper');
+        const erdToggleText = document.getElementById('erdToggleText');
+
+        // Dark / Light Mode Toggle
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Toggle ERD View
+        function toggleErdView() {
+            isErdVisible = !isErdVisible;
+            if (isErdVisible) {
+                erdContainer.classList.remove('hidden');
+                tablesContainer.classList.add('hidden');
+                emptySearch.classList.add('hidden');
+                statsBanner.classList.add('hidden');
+                schemaPills.classList.add('hidden');
+                sidebarContainer.classList.add('hidden');
+                searchWrapper.classList.add('hidden');
+                erdToggleText.textContent = "Lihat Tabel";
+            } else {
+                erdContainer.classList.add('hidden');
+                tablesContainer.classList.remove('hidden');
+                statsBanner.classList.remove('hidden');
+                schemaPills.classList.remove('hidden');
+                sidebarContainer.classList.remove('hidden');
+                searchWrapper.classList.remove('hidden');
+                erdToggleText.textContent = "Diagram ERD";
+                applyFilters();
+            }
+        }
+
+        // Calculate Overview Statistics
+        function calculateStats() {
+            let totalColumns = 0;
+            allTables.forEach(t => {
+                totalColumns += t.fields.length;
+            });
+
+            document.getElementById('statTotalSchemas').textContent = dbData.schemas.length;
+            document.getElementById('statTotalTables').textContent = allTables.length;
+            document.getElementById('statTotalColumns').textContent = totalColumns;
+            document.getElementById('statTotalRelations').textContent = dbData.relations.length;
+            document.getElementById('tableCountBadge').textContent = allTables.length;
+        }
+
+        // Render Schema Quick Filter Pills
+        function renderSchemaPills() {
+            const pills = [
+                { id: "all", label: "Semua Schema", count: allTables.length, dot: "bg-brand-600" },
+                ...dbData.schemas.map(s => ({
+                    id: s.id,
+                    label: s.name,
+                    count: (dbData.tables[s.id] || []).length,
+                    dot: s.dotClass
+                }))
+            ];
+
+            schemaPills.innerHTML = pills.map(p => {
+                const isActive = activeSchema === p.id;
+                const activeClasses = isActive
+                    ? "bg-brand-600 text-white border-brand-600 shadow-sm"
+                    : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-500";
+                const countClasses = isActive
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400";
+
+                return `
+                    <button onclick="selectSchema('${p.id}')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${activeClasses}">
+                        <span class="w-2 h-2 rounded-full ${isActive ? 'bg-white' : p.dot}"></span>
+                        <span class="font-mono">${p.label}</span>
+                        <span class="px-1.5 py-0.5 rounded-md text-[10px] font-sans ${countClasses}">${p.count}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectSchema(schemaId) {
+            activeSchema = schemaId;
+            schemaFilter.value = schemaId;
+            renderSchemaPills();
+            applyFilters();
+        }
+
+        // Group filtered tables by schema
+        function groupBySchema(tableList) {
+            return tableList.reduce((acc, table) => {
+                if (!acc[table.schemaId]) acc[table.schemaId] = [];
+                acc[table.schemaId].push(table);
+                return acc;
+            }, {});
+        }
+
+        // Render Sidebar Navigation
+        function renderSidebarNav(tableList) {
+            sidebarNav.innerHTML = '';
+            document.getElementById('tableCountBadge').textContent = tableList.length;
+
+            if (tableList.length === 0) {
+                sidebarNav.innerHTML = `<div class="text-xs text-slate-400 py-3 italic text-center">Tidak ada tabel ditemukan</div>`;
+                return;
+            }
+
+            const grouped = groupBySchema(tableList);
+
+            for (const [schemaId, tables] of Object.entries(grouped)) {
+                const schemaInfo = schemaMap[schemaId];
+                const groupDiv = document.createElement('div');
+                groupDiv.className = "space-y-1 mb-3";
+
+                groupDiv.innerHTML = `
+                    <div class="flex items-center justify-between px-2 py-1">
+                        <span class="text-[11px] font-bold font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full ${schemaInfo.dotClass}"></span>
+                            ${schemaInfo.name}
+                        </span>
+                        <span class="text-[10px] text-slate-400">${tables.length}</span>
+                    </div>
+                    <div class="space-y-0.5">
+                        ${tables.map(t => `
+                            <a href="#table-${t.schemaId}-${t.name}" 
+                               class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 hover:text-brand-600 dark:hover:text-brand-400 transition-colors font-mono text-xs">
+                                <span class="truncate">${t.name}</span>
+                                <span class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-400 px-1.5 py-0.2 rounded-md font-sans">${t.fields.length}</span>
+                            </a>
+                        `).join('')}
+                    </div>
+                `;
+                sidebarNav.appendChild(groupDiv);
+            }
+        }
+
+        // Helper to generate automatic clear Indonesian description for any field
+        function getFieldNote(table, field) {
+            const fkRel = table.outgoingRelations.find(r => r.column === field.name);
+            if (field.key === 'pk') {
+                return `Primary Key identitas unik untuk tabel <code class="font-mono text-xs text-brand-600 dark:text-brand-400">${table.name}</code>.`;
+            }
+            if (fkRel) {
+                const targetSchema = tableToSchemaMap[fkRel.toTable] || 'schema';
+                return `Foreign Key referensi ke tabel <a href="#table-${targetSchema}-${fkRel.toTable}" class="font-mono font-semibold text-brand-600 dark:text-brand-400 hover:underline">${fkRel.toTable}</a> (${targetSchema}).`;
+            }
+            if (field.key === 'fk') {
+                return `Atribut relasi Foreign Key pada tabel <code class="font-mono text-xs">${table.name}</code>.`;
+            }
+            if (field.name === 'created_at') return 'Timestamp waktu pencatatan data dibuat.';
+            if (field.name === 'updated_at') return 'Timestamp waktu pembaruan data terakhir.';
+            if (field.name === 'deleted_at') return 'Timestamp waktu penghapusan data (Soft Delete).';
+            return `Atribut kolom <code class="font-mono text-xs">${field.name}</code> bertipe <code class="font-mono text-xs">${field.type}</code>.`;
+        }
+
+        // Render Detailed Table Cards
+        function renderTables(tableList) {
+            tablesContainer.innerHTML = '';
+
+            if (tableList.length === 0) {
+                emptySearch.classList.remove('hidden');
+                return;
+            } else {
+                emptySearch.classList.add('hidden');
+            }
+
+            const grouped = groupBySchema(tableList);
+
+            for (const [schemaId, tables] of Object.entries(grouped)) {
+                const schemaInfo = schemaMap[schemaId];
+
+                // Schema Section Header
+                const schemaHeader = document.createElement('div');
+                schemaHeader.className = "pt-2 pb-1 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2";
+                schemaHeader.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full ${schemaInfo.dotClass}"></span>
+                            <h2 class="text-base font-bold font-mono text-slate-900 dark:text-white">${schemaInfo.name}</h2>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${schemaInfo.description}</p>
+                    </div>
+                    <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 self-start sm:self-center">
+                        ${tables.length} Tabel
+                    </span>
+                `;
+                tablesContainer.appendChild(schemaHeader);
+
+                tables.forEach(table => {
+                    const card = document.createElement('section');
+                    card.id = `table-${table.schemaId}-${table.name}`;
+                    card.className = "bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm overflow-hidden scroll-mt-24 transition-all";
+
+                    const totalRels = table.outgoingRelations.length + table.incomingRelations.length;
+
+                    // Header Card HTML
+                    let cardHTML = `
+                        <div class="p-5 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="px-2.5 py-0.5 text-xs font-semibold font-mono rounded-full ${table.badgeClass}">
+                                        ${table.schemaName}
+                                    </span>
+                                    <h3 class="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-white">${table.name}</h3>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Tabel pada schema <span class="font-mono font-medium">${table.schemaName}</span> dengan ${table.fields.length} atribut kolom${table.outgoingRelations.length > 0 ? ` dan ${table.outgoingRelations.length} referensi Foreign Key` : ''}.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500 font-mono">
+                                <span class="bg-slate-100 dark:bg-slate-700/80 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-600">
+                                    <i class="fa-solid fa-columns mr-1"></i> ${table.fields.length} Kolom
+                                </span>
+                                <span class="bg-slate-100 dark:bg-slate-700/80 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-600">
+                                    <i class="fa-solid fa-link mr-1"></i> ${table.outgoingRelations.length} FK
+                                </span>
+                            </div>
+                        </div>
+                    `;
+
+                    // Render Outgoing & Incoming Table Relations if exists
+                    if (totalRels > 0) {
+                        cardHTML += `
+                            <div class="px-5 py-3 bg-blue-50/40 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-700/80 space-y-2.5">
+                        `;
+
+                        if (table.outgoingRelations.length > 0) {
+                            cardHTML += `
+                                <div>
+                                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">
+                                        <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Referensi Keluar (Foreign Keys)
+                                    </div>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${table.outgoingRelations.map(rel => {
+                                            const targetSchema = tableToSchemaMap[rel.toTable] || 'all';
+                                            return `
+                                                <a href="#table-${targetSchema}-${rel.toTable}" onclick="ensureTableVisible('${targetSchema}')" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs shadow-xs hover:border-brand-500 transition-colors">
+                                                    <span class="font-medium text-indigo-600 dark:text-indigo-400 font-mono">${rel.column}</span>
+                                                    <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+                                                    <span class="font-bold font-mono text-slate-800 dark:text-slate-200">${rel.toTable}</span>
+                                                    <span class="text-[10px] text-slate-400 font-mono">(${targetSchema})</span>
+                                                </a>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        if (table.incomingRelations.length > 0) {
+                            cardHTML += `
+                                <div>
+                                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">
+                                        <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i> Direferensikan Oleh Tabel Lain (${table.incomingRelations.length})
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        ${table.incomingRelations.map(rel => {
+                                            const sourceSchema = tableToSchemaMap[rel.fromTable] || 'all';
+                                            return `
+                                                <a href="#table-${sourceSchema}-${rel.fromTable}" onclick="ensureTableVisible('${sourceSchema}')" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-[11px] hover:border-brand-500 transition-colors">
+                                                    <span class="font-mono font-semibold text-slate-700 dark:text-slate-300">${rel.fromTable}</span>
+                                                    <span class="text-slate-400 font-mono">.${rel.column}</span>
+                                                </a>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        cardHTML += `</div>`;
+                    }
+
+                    // Render Columns Table
+                    cardHTML += `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs sm:text-sm">
+                                <thead class="bg-slate-100/70 dark:bg-slate-700/40 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-700">
+                                    <tr>
+                                        <th class="py-3 px-4 w-56">Nama Kolom</th>
+                                        <th class="py-3 px-4 w-36">Tipe Data</th>
+                                        <th class="py-3 px-4 w-32 text-center">Kunci / Key</th>
+                                        <th class="py-3 px-4">Keterangan &amp; Referensi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200/70 dark:divide-slate-700/60 font-sans">
+                                    ${table.fields.map(col => `
+                                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/20 transition-colors">
+                                            <td class="py-2.5 px-4 font-mono font-semibold text-slate-900 dark:text-slate-100">
+                                                <div class="flex items-center gap-2">
+                                                    ${col.key === 'pk' ? '<i class="fa-solid fa-key text-amber-500 text-xs" title="Primary Key"></i>' : ''}
+                                                    ${col.key === 'fk' ? '<i class="fa-solid fa-link text-indigo-500 text-xs" title="Foreign Key"></i>' : ''}
+                                                    <span>${col.name}</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 px-4 font-mono text-xs text-purple-600 dark:text-purple-400 font-medium">
+                                                ${col.type}
+                                            </td>
+                                            <td class="py-2.5 px-4 text-center space-x-1">
+                                                ${col.key === 'pk' ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md badge-pk">PK</span>' : ''}
+                                                ${col.key === 'fk' ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md badge-fk">FK</span>' : ''}
+                                                ${!col.key ? '<span class="px-2 py-0.5 text-[10px] font-medium rounded-md badge-regular">FIELD</span>' : ''}
+                                            </td>
+                                            <td class="py-2.5 px-4 text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                                                ${getFieldNote(table, col)}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+
+                    card.innerHTML = cardHTML;
+                    tablesContainer.appendChild(card);
+                });
+            }
+        }
+
+        // Ensure target table is visible if user clicks a cross-schema relation link while filtered
+        function ensureTableVisible(targetSchemaId) {
+            if (activeSchema !== 'all' && activeSchema !== targetSchemaId) {
+                activeSchema = 'all';
+                schemaFilter.value = 'all';
+                renderSchemaPills();
+                applyFilters();
+            }
+        }
+
+        // Filter Logic
+        function applyFilters() {
+            const query = searchQuery.toLowerCase().trim();
+
+            const filtered = allTables.filter(table => {
+                // Schema Filter
+                if (activeSchema !== 'all' && table.schemaId !== activeSchema) {
+                    return false;
+                }
+
+                // Search Query Filter
+                if (!query) return true;
+
+                const matchTableName = table.name.toLowerCase().includes(query);
+                const matchSchemaName = table.schemaName.toLowerCase().includes(query);
+                const matchField = table.fields.some(f =>
+                    f.name.toLowerCase().includes(query) ||
+                    f.type.toLowerCase().includes(query) ||
+                    (f.key && f.key.toLowerCase().includes(query))
+                );
+                const matchRelation = table.outgoingRelations.some(r =>
+                    r.toTable.toLowerCase().includes(query) ||
+                    r.column.toLowerCase().includes(query)
+                );
+
+                return matchTableName || matchSchemaName || matchField || matchRelation;
+            });
+
+            renderSidebarNav(filtered);
+            renderTables(filtered);
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            applyFilters();
+        });
+
+        schemaFilter.addEventListener('change', (e) => {
+            activeSchema = e.target.value;
+            renderSchemaPills();
+            applyFilters();
+        });
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                scrollTopBtn.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        // Initialize App
+        function initApp() {
+            calculateStats();
+            renderSchemaPills();
+            applyFilters();
+        }
+
+        initApp();
+    </script>
+</body>
+</html>

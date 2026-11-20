@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi Database — production_dasaria_complaint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for sleek technical look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.7);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200 antialiased selection:bg-brand-500 selection:text-white transition-colors duration-200">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-white/85 dark:bg-slate-900/85 border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand & Schema Title -->
+            <div class="flex items-center gap-3 min-w-0">
+                <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none" aria-label="Toggle Menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                    </svg>
+                </div>
+                <div class="truncate">
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white truncate font-mono">
+                            production_dasaria_complaint
+                        </h1>
+                        <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                            MySQL 8.0 / InnoDB
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">Data Dictionary &amp; Schema Documentation</p>
+                </div>
+            </div>
+
+            <!-- Search Input & Theme Toggle -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="relative w-44 sm:w-64 md:w-80">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="Cari tabel, kolom, atau relasi..." 
+                        class="block w-full pl-9 pr-8 py-1.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100/70 dark:bg-slate-800/70 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white dark:focus:bg-slate-800 transition">
+                    <button id="clearSearchBtn" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Hapus pencarian">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <button id="themeToggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Ganti Tema Gelap/Terang">
+                    <!-- Sun Icon -->
+                    <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <!-- Moon Icon -->
+                    <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex relative">
+        
+        <!-- Mobile Backdrop -->
+        <div id="sidebarBackdrop" class="fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-xs hidden lg:hidden"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed lg:sticky top-16 left-0 z-30 w-72 h-[calc(100vh-4rem)] shrink-0 bg-white dark:bg-slate-900 lg:bg-transparent lg:dark:bg-transparent border-r border-slate-200 dark:border-slate-800 lg:border-r-0 pr-0 lg:pr-6 py-6 overflow-y-auto transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out">
+            <div class="px-4 lg:px-0">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Daftar Tabel (28)</span>
+                    <span id="visibleTableCount" class="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300">28</span>
+                </div>
+                <nav id="sidebarNav" class="space-y-5">
+                    <!-- Populated via JS -->
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0 py-6 lg:pl-6">
+            
+            <!-- Overview Summary Cards -->
+            <section class="mb-8">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Skema Sistem Manajemen Komplain &amp; TSO Work Order</h2>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                Dokumentasi lengkap struktur tabel, tipe data, definisi fungsional setiap kolom, serta pemetaan relasi internal maupun lintas-database (<span class="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">griya_customer</span>, <span class="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">griya_company</span>, <span class="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">griya_oprasional</span>).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter Pills -->
+                    <div class="pt-4 flex flex-wrap items-center gap-2" id="categoryFilters">
+                        <button data-group="all" class="filter-btn active px-3 py-1.5 rounded-xl text-xs font-semibold transition bg-brand-600 text-white shadow-xs">
+                            Semua Tabel (28)
+                        </button>
+                        <button data-group="master" class="filter-btn px-3 py-1.5 rounded-xl text-xs font-medium transition bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                            Master Data (mt_ &amp; users)
+                        </button>
+                        <button data-group="detail" class="filter-btn px-3 py-1.5 rounded-xl text-xs font-medium transition bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                            Detail Data (dt_)
+                        </button>
+                        <button data-group="reference" class="filter-btn px-3 py-1.5 rounded-xl text-xs font-medium transition bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                            Referensi (rf_)
+                        </button>
+                        <button data-group="transaction" class="filter-btn px-3 py-1.5 rounded-xl text-xs font-medium transition bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                            Transaksi &amp; Log (tr_ &amp; lg_)
+                        </button>
+                        <button data-group="system" class="filter-btn px-3 py-1.5 rounded-xl text-xs font-medium transition bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+                            Sistem Laravel
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Legend Box -->
+            <section class="mb-6 flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400 px-1">
+                <span class="font-semibold text-slate-700 dark:text-slate-300">Keterangan Badge:</span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200 dark:border-amber-800">PK</span> Primary Key
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800">FK</span> Foreign Key (Relasi DB)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono font-semibold bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border border-purple-200 dark:border-purple-800">EXT</span> Referensi Lintas-Database
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono font-semibold bg-teal-100 text-teal-800 dark:bg-teal-950/80 dark:text-teal-300 border border-teal-200 dark:border-teal-800">UQ</span> Unique Index
+            </section>
+
+            <!-- Tables Container -->
+            <div id="tablesContainer" class="space-y-8">
+                <!-- Populated dynamically via JS -->
+            </div>
+
+            <!-- Empty State when Search has no results -->
+            <div id="emptyState" class="hidden text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3 class="mt-3 text-base font-semibold text-slate-900 dark:text-white">Tidak ada hasil ditemukan</h3>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Coba kata kunci pencarian lain atau reset filter kategori.</p>
+                <button id="resetAllBtn" class="mt-4 px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 transition">
+                    Reset Pencarian &amp; Filter
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <footer class="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-400 pb-8">
+                Dokumentasi Skema Database <span class="font-mono font-semibold">production_dasaria_complaint</span> &bull; Dihasilkan dari DDL MySQL Workbench
+            </footer>
+        </main>
+    </div>
+
+    <!-- Notification Toast for Copy Action -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400 dark:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span id="toastMessage">Nama tabel disalin!</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // COMPLETE DATABASE SCHEMA METADATA (28 TABLES)
+        // ============================================================================
+        const databaseSchema = [
+            // --- GROUP: MASTER DATA ---
+            {
+                name: 'users',
+                group: 'master',
+                groupLabel: 'Master Data',
+                description: 'Menyimpan data akun pengguna internal (admin dan manajer) yang mengoperasikan sistem penanganan komplain dan TSO.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik pengguna dalam format UUID.', relation: null },
+                    { name: 'branch_id', type: 'INT', keys: [], nullable: false, default: '-', definition: 'ID cabang tempat pengguna bertugas.', relation: { type: 'external', text: 'Referensi logis ke cabang perusahaan' } },
+                    { name: 'is_admin', type: 'TINYINT', keys: [], nullable: false, default: '-', definition: 'Penanda hak akses administrator sistem (1 = Ya, 0 = Tidak).', relation: null },
+                    { name: 'role', type: "ENUM('admin', 'manager')", keys: [], nullable: false, default: '-', definition: 'Peran pengguna dalam sistem (admin atau manager).', relation: null },
+                    { name: 'status_pegawai', type: "ENUM('training', 'staff', 'off')", keys: [], nullable: false, default: '-', definition: 'Status kepegawaian pengguna saat ini.', relation: null },
+                    { name: 'nama_lengkap', type: 'VARCHAR(30)', keys: [], nullable: false, default: '-', definition: 'Nama panggilan atau nama singkat pegawai.', relation: null },
+                    { name: 'full_name', type: 'VARCHAR(100)', keys: [], nullable: false, default: '-', definition: 'Nama lengkap resmi pegawai.', relation: null },
+                    { name: 'karyawan_nip', type: 'BIGINT UNSIGNED', keys: ['UQ'], nullable: false, default: '-', definition: 'Nomor Induk Pegawai (NIP) unik yang menjadi acuan relasi pembuatan tiket dan asesmen.', relation: { type: 'referenced_by', text: 'Direferensikan oleh mt_tickets, mt_ticket_assessments, dt_ticket_assessment_actions, dt_ticket_assessment_points, mt_tso_wo, mt_ticket_ratings' } },
+                    { name: 'division_id', type: 'INT', keys: [], nullable: false, default: '-', definition: 'ID divisi kerja pegawai.', relation: null },
+                    { name: 'password', type: 'VARCHAR(100)', keys: [], nullable: false, default: '-', definition: 'Kata sandi pengguna yang telah di-hash.', relation: null },
+                    { name: 'remember_token', type: 'VARCHAR(100)', keys: [], nullable: true, default: 'NULL', definition: 'Token autentikasi sesi "Remember Me" Laravel.', relation: null },
+                    { name: 'refresh_token_exp', type: 'DATETIME', keys: [], nullable: true, default: 'NULL', definition: 'Waktu kedaluwarsa refresh token autentikasi API.', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Waktu pembuatan record pengguna.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Waktu pembaruan terakhir record pengguna.', relation: null }
+                ]
+            },
+            {
+                name: 'mt_tickets',
+                group: 'master',
+                groupLabel: 'Master Data',
+                description: 'Tabel utama (Master) yang mencatat seluruh tiket komplain pelanggan dari awal dilaporkan hingga ditutup.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik tiket komplain (UUID).', relation: null },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['FK'], nullable: false, default: '-', definition: 'NIP pegawai yang membuat tiket komplain.', relation: { type: 'fk', targetTable: 'users', targetCol: 'karyawan_nip', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'pppoe_secret', type: 'VARCHAR(30)', keys: ['EXT'], nullable: false, default: '-', definition: 'Username/secret PPPoE milik pelanggan yang mengajukan komplain.', relation: { type: 'external', text: 'griya_customer.customers (pppoe_secret)' } },
+                    { name: 'branch_id', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: false, default: '-', definition: 'ID cabang wilayah layanan pelanggan.', relation: { type: 'external', text: 'griya_company.branches (id)' } },
+                    { name: 'category_id', type: 'CHAR(36)', keys: ['FK'], nullable: false, default: '-', definition: 'ID kategori permasalahan komplain.', relation: { type: 'fk', targetTable: 'rf_ticket_categories', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'code', type: 'CHAR(16)', keys: ['UQ'], nullable: false, default: '-', definition: 'Kode nomor tiket unik yang dapat dibaca pengguna/pelanggan.', relation: null },
+                    { name: 'status', type: "ENUM('open', 'escalated', 'in_progress', 'solved', 'closed')", keys: [], nullable: false, default: "'open'", definition: 'Status siklus hidup tiket saat ini.', relation: null },
+                    { name: 'chronology', type: 'LONGTEXT', keys: [], nullable: false, default: '-', definition: 'Deskripsi kronologi lengkap keluhan atau gangguan yang dialami pelanggan.', relation: null },
+                    { name: 'complained_at', type: 'DATETIME', keys: [], nullable: false, default: '-', definition: 'Tanggal dan waktu pelanggan pertama kali melaporkan komplain.', relation: null },
+                    { name: 'closed_at', type: 'DATETIME', keys: [], nullable: true, default: 'NULL', definition: 'Tanggal dan waktu tiket dinyatakan selesai dan ditutup.', relation: null },
+                    { name: 'solved_by', type: "ENUM('customer', 'customer_care', 'technician', 'customer_did_not_answer')", keys: [], nullable: true, default: 'NULL', definition: 'Pihak atau kondisi yang menyelesaikan masalah pada tiket.', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan record tiket.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp perubahan terakhir record tiket.', relation: null }
+                ]
+            },
+            {
+                name: 'mt_ticket_assessments',
+                group: 'master',
+                groupLabel: 'Master Data',
+                description: 'Menyimpan hasil asesmen/diagnosa awal Customer Care terhadap suatu tiket komplain sebelum atau tanpa eskalasi teknisi.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik asesmen tiket (UUID).', relation: null },
+                    { name: 'ticket_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID tiket yang sedang diasesmen (kombinasi unik dengan impact_id).', relation: { type: 'fk', targetTable: 'mt_tickets', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'impact_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID tingkat dampak gangguan yang ditemukan saat asesmen.', relation: { type: 'fk', targetTable: 'rf_impacts', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['FK'], nullable: false, default: '-', definition: 'NIP pegawai yang melakukan asesmen tiket.', relation: { type: 'fk', targetTable: 'users', targetCol: 'karyawan_nip', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'result', type: 'LONGTEXT', keys: [], nullable: true, default: 'NULL', definition: 'Kesimpulan atau hasil akhir dari proses diagnosa/asesmen.', relation: null },
+                    { name: 'notes', type: 'LONGTEXT', keys: [], nullable: true, default: 'NULL', definition: 'Catatan tambahan dari petugas selama melakukan pengecekan.', relation: null },
+                    { name: 'is_draft', type: 'TINYINT(1)', keys: [], nullable: true, default: 'NULL', definition: 'Menandakan apakah asesmen masih berupa draf (1) atau sudah final (0).', relation: null },
+                    { name: 'last_step', type: "ENUM('step_1', 'step_2')", keys: [], nullable: true, default: 'NULL', definition: 'Tahapan terakhir pengisian formulir asesmen.', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan data asesmen.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan data asesmen.', relation: null }
+                ]
+            },
+            {
+                name: 'mt_tso_wo',
+                group: 'master',
+                groupLabel: 'Master Data',
+                description: 'Master Work Order (WO) Technical Support On-site (TSO) yang dibuat ketika komplain memerlukan kunjungan teknisi ke lapangan.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik Work Order TSO (UUID).', relation: null },
+                    { name: 'ticket_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: true, default: 'NULL', definition: 'ID tiket komplain asal (relasi 1-ke-1).', relation: { type: 'fk', targetTable: 'mt_tickets', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'ticket_assessment_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: true, default: 'NULL', definition: 'ID asesmen tiket yang memicu pembuatan WO TSO (relasi 1-ke-1).', relation: { type: 'fk', targetTable: 'mt_ticket_assessments', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'pppoe_secret', type: 'VARCHAR(30)', keys: ['EXT'], nullable: true, default: 'NULL', definition: 'Identitas PPPoE pelanggan tujuan kunjungan teknisi.', relation: { type: 'external', text: 'griya_customer.customers (pppoe_secret)' } },
+                    { name: 'branch_id', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: true, default: 'NULL', definition: 'ID cabang operasional tempat WO TSO dijalankan.', relation: { type: 'external', text: 'griya_company.branches (id)' } },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['FK'], nullable: true, default: 'NULL', definition: 'NIP pegawai yang menerbitkan Work Order TSO.', relation: { type: 'fk', targetTable: 'users', targetCol: 'karyawan_nip', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'old_team_id', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: true, default: 'NULL', definition: 'ID tim teknisi sebelumnya (jika terjadi pergantian tim).', relation: { type: 'external', text: 'griya_oprasional.technician_teams (id)' } },
+                    { name: 'old_katim_id', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: true, default: 'NULL', definition: 'ID Kepala Tim (Katim) teknisi sebelumnya.', relation: { type: 'external', text: 'griya_company.users (id)' } },
+                    { name: 'team_id', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: true, default: 'NULL', definition: 'ID tim teknisi aktif yang ditugaskan menangani WO.', relation: { type: 'external', text: 'griya_oprasional.technician_teams (id)' } },
+                    { name: 'katim_id', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: true, default: 'NULL', definition: 'ID Kepala Tim (Katim) aktif yang bertanggung jawab.', relation: { type: 'external', text: 'griya_company.users (id)' } },
+                    { name: 'is_guaranteed', type: 'TINYINT(1)', keys: [], nullable: true, default: '0', definition: 'Penanda apakah pekerjaan masuk dalam masa garansi instalasi/perbaikan (1 = Ya, 0 = Tidak).', relation: null },
+                    { name: 'reason_for_team_change', type: 'TEXT', keys: [], nullable: true, default: 'NULL', definition: 'Alasan apabila dilakukan pemindahan tugas ke tim teknisi lain.', relation: null },
+                    { name: 'tso_schedule', type: 'DATE', keys: [], nullable: true, default: 'NULL', definition: 'Tanggal jadwal kunjungan teknisi ke lokasi pelanggan.', relation: null },
+                    { name: 'phase', type: 'INT', keys: [], nullable: true, default: 'NULL', definition: 'Sesi atau gelombang jadwal kunjungan pada tanggal tersebut.', relation: null },
+                    { name: 'status', type: "ENUM('waiting_for_schedule', 'scheduled', 'in_progress', 'completed', 'canceled')", keys: [], nullable: false, default: "'waiting_for_schedule'", definition: 'Status pengerjaan Work Order TSO saat ini.', relation: null },
+                    { name: 'started_at', type: 'DATETIME', keys: [], nullable: true, default: 'NULL', definition: 'Waktu teknisi mulai mengerjakan tugas di lokasi.', relation: null },
+                    { name: 'completed_at', type: 'DATETIME', keys: [], nullable: true, default: 'NULL', definition: 'Waktu teknisi menyelesaikan pekerjaan di lokasi.', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan WO TSO.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan terakhir WO TSO.', relation: null }
+                ]
+            },
+            {
+                name: 'mt_tso_wo_assessments',
+                group: 'master',
+                groupLabel: 'Master Data',
+                description: 'Header laporan hasil pengecekan/asesmen lapangan yang diisi oleh teknisi saat menjalankan Work Order TSO.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik asesmen lapangan TSO (UUID).', relation: null },
+                    { name: 'tso_wo_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID Work Order TSO yang dinilai (relasi 1-ke-1).', relation: { type: 'fk', targetTable: 'mt_tso_wo', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: false, default: '-', definition: 'ID pengguna (teknisi) yang membuat laporan asesmen lapangan.', relation: { type: 'external', text: 'griya_company.users (id)' } },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan laporan asesmen TSO.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan laporan asesmen TSO.', relation: null }
+                ]
+            },
+            {
+                name: 'mt_tso_wo_point_variables',
+                group: 'master',
+                groupLabel: 'Master Data',
+                description: 'Daftar master variabel/parameter standar yang wajib atau dapat diperiksa oleh teknisi di lapangan (instalasi rumah, jalur kabel, ODP).',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik variabel poin pemeriksaan TSO (UUID).', relation: null },
+                    { name: 'point', type: 'VARCHAR(100)', keys: [], nullable: false, default: '-', definition: 'Nama parameter atau titik yang diperiksa (misal: Redaman Optik, Konektor ODP).', relation: null },
+                    { name: 'category', type: "ENUM('customer_installation', 'line_withdrawal', 'odp_installation', 'custom')", keys: [], nullable: false, default: "'custom'", definition: 'Pengelompokan area pemeriksaan teknis.', relation: null },
+                    { name: 'status_options', type: 'JSON', keys: [], nullable: true, default: 'NULL', definition: 'Opsi status atau pilihan kondisi yang tersedia dalam format JSON.', relation: null },
+                    { name: 'is_required', type: 'TINYINT(1)', keys: [], nullable: false, default: '0', definition: 'Menandakan apakah poin pemeriksaan ini wajib diisi teknisi (1 = Wajib, 0 = Opsional).', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan variabel poin.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan variabel poin.', relation: null }
+                ]
+            },
+            {
+                name: 'mt_ticket_ratings',
+                group: 'master',
+                groupLabel: 'Master Data',
+                description: 'Menyimpan ulasan dan rating kepuasan pelanggan terhadap layanan Customer Care maupun Teknisi setelah tiket ditangani.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik data rating tiket (UUID).', relation: null },
+                    { name: 'ticket_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID tiket yang dinilai (unik per kombinasi ticket_id dan role).', relation: { type: 'fk', targetTable: 'mt_tickets', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'role', type: "ENUM('customer_care', 'technician')", keys: ['UQ'], nullable: true, default: 'NULL', definition: 'Pihak yang diberikan penilaian (Customer Care atau Teknisi).', relation: null },
+                    { name: 'value', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Skor/nilai rating kepuasan yang diberikan pelanggan.', relation: null },
+                    { name: 'feedback', type: 'TEXT', keys: [], nullable: false, default: '-', definition: 'Komentar, kritik, atau saran tertulis dari pelanggan.', relation: null },
+                    { name: 'channel', type: "ENUM('app', 'web', 'whatsapp')", keys: [], nullable: false, default: "'whatsapp'", definition: 'Saluran media tempat pelanggan mengirimkan penilaian.', relation: null },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['FK'], nullable: false, default: '-', definition: 'NIP pegawai yang mencatat atau memicu record rating.', relation: { type: 'fk', targetTable: 'users', targetCol: 'karyawan_nip', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan rating.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan rating.', relation: null }
+                ]
+            },
+
+            // --- GROUP: DETAIL DATA ---
+            {
+                name: 'dt_ticket_assessment_actions',
+                group: 'detail',
+                groupLabel: 'Detail Data',
+                description: 'Mencatat detail tindakan (action) dan sub-tindakan troubleshooting yang dilakukan oleh petugas selama proses asesmen tiket.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik baris detail tindakan asesmen (UUID).', relation: null },
+                    { name: 'ticket_id', type: 'CHAR(36)', keys: ['FK'], nullable: false, default: '-', definition: 'ID tiket terkait.', relation: { type: 'fk', targetTable: 'mt_tickets', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'assessment_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID asesmen tiket induk.', relation: { type: 'fk', targetTable: 'mt_ticket_assessments', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'action_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID kategori tindakan utama yang dilakukan.', relation: { type: 'fk', targetTable: 'rf_actions', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'sub_action_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID sub-tindakan spesifik dari tindakan utama.', relation: { type: 'fk', targetTable: 'rf_sub_actions', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['FK'], nullable: false, default: '-', definition: 'NIP pegawai yang mengeksekusi tindakan.', relation: { type: 'fk', targetTable: 'users', targetCol: 'karyawan_nip', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pencatatan tindakan.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan tindakan.', relation: null }
+                ]
+            },
+            {
+                name: 'dt_ticket_assessment_points',
+                group: 'detail',
+                groupLabel: 'Detail Data',
+                description: 'Mencatat hasil pemeriksaan tiap titik/indikator pengecekan (normal atau abnormal) saat asesmen tiket berlangsung.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik detail poin asesmen tiket (UUID).', relation: null },
+                    { name: 'assessment_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID asesmen tiket induk (unik per kombinasi dengan point_id).', relation: { type: 'fk', targetTable: 'mt_ticket_assessments', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'point_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID referensi poin pengecekan yang diperiksa.', relation: { type: 'fk', targetTable: 'rf_assessment_points', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'condition', type: "ENUM('normal', 'abnormal')", keys: [], nullable: false, default: '-', definition: 'Status kondisi yang ditemukan pada titik pengecekan tersebut.', relation: null },
+                    { name: 'notes', type: 'VARCHAR(50)', keys: [], nullable: true, default: 'NULL', definition: 'Catatan singkat mengenai kondisi titik pengecekan.', relation: null },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['FK'], nullable: false, default: '-', definition: 'NIP pegawai yang memeriksa poin tersebut.', relation: { type: 'fk', targetTable: 'users', targetCol: 'karyawan_nip', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pencatatan poin.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan poin.', relation: null }
+                ]
+            },
+            {
+                name: 'dt_tso_wo_assessment_points',
+                group: 'detail',
+                groupLabel: 'Detail Data',
+                description: 'Detail hasil pengecekan setiap variabel fisik/teknis oleh teknisi di lokasi pelanggan selama pelaksanaan TSO.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik detail poin asesmen lapangan TSO (UUID).', relation: null },
+                    { name: 'tso_wo_assessment_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID header asesmen TSO induk.', relation: { type: 'fk', targetTable: 'mt_tso_wo_assessments', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'tso_wo_point_variable_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: true, default: 'NULL', definition: 'ID referensi variabel poin TSO (jika berasal dari template standar).', relation: { type: 'fk', targetTable: 'mt_tso_wo_point_variables', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'point', type: 'VARCHAR(100)', keys: [], nullable: true, default: 'NULL', definition: 'Nama poin pemeriksaan (digunakan untuk poin kustom atau snapshot nama variabel).', relation: null },
+                    { name: 'condition', type: "ENUM('normal', 'abnormal', 'checked', 'unchecked')", keys: [], nullable: false, default: '-', definition: 'Hasil inspeksi lapangan pada titik tersebut.', relation: null },
+                    { name: 'notes', type: 'VARCHAR(100)', keys: [], nullable: true, default: 'NULL', definition: 'Keterangan tambahan hasil pengecekan teknisi.', relation: null },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: false, default: '-', definition: 'ID pengguna (teknisi) yang menginput hasil inspeksi.', relation: { type: 'external', text: 'griya_company.users (id)' } },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pencatatan poin TSO.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan poin TSO.', relation: null }
+                ]
+            },
+            {
+                name: 'dt_tso_wo_assessment_actions',
+                group: 'detail',
+                groupLabel: 'Detail Data',
+                description: 'Detail tindakan perbaikan fisik yang dilakukan teknisi di lapangan terhadap temuan pada poin asesmen TSO.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik detail tindakan perbaikan TSO (UUID).', relation: null },
+                    { name: 'tso_wo_assessment_id', type: 'CHAR(36)', keys: ['FK'], nullable: false, default: '-', definition: 'ID header asesmen TSO induk.', relation: { type: 'fk', targetTable: 'mt_tso_wo_assessments', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'tso_wo_assessment_point_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: true, default: 'NULL', definition: 'ID poin pemeriksaan spesifik yang ditindaklanjuti (relasi 1-ke-1 dengan poin).', relation: { type: 'fk', targetTable: 'dt_tso_wo_assessment_points', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'action', type: 'VARCHAR(100)', keys: [], nullable: true, default: 'NULL', definition: 'Deskripsi tindakan perbaikan yang dilakukan teknisi (misal: Splicing ulang kabel dropcore).', relation: null },
+                    { name: 'notes', type: 'VARCHAR(100)', keys: [], nullable: true, default: 'NULL', definition: 'Catatan teknis tambahan terkait perbaikan.', relation: null },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: false, default: '-', definition: 'ID pengguna (teknisi) yang mencatat tindakan perbaikan.', relation: { type: 'external', text: 'griya_company.users (id)' } },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pencatatan tindakan TSO.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan tindakan TSO.', relation: null }
+                ]
+            },
+            {
+                name: 'dt_tso_wo_assessment_results',
+                group: 'detail',
+                groupLabel: 'Detail Data',
+                description: 'Mencatat kesimpulan akhir hasil pengerjaan lapangan dari sebuah asesmen Work Order TSO.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik hasil asesmen TSO (UUID).', relation: null },
+                    { name: 'tso_wo_assessment_id', type: 'CHAR(36)', keys: ['FK'], nullable: false, default: '-', definition: 'ID header asesmen TSO induk.', relation: { type: 'fk', targetTable: 'mt_tso_wo_assessments', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'result', type: 'VARCHAR(50)', keys: [], nullable: false, default: '-', definition: 'Status atau kesimpulan hasil penyelesaian TSO di lapangan.', relation: null },
+                    { name: 'notes', type: 'VARCHAR(100)', keys: [], nullable: true, default: 'NULL', definition: 'Catatan penutup dari teknisi mengenai hasil akhir.', relation: null },
+                    { name: 'created_by', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: false, default: '-', definition: 'ID pengguna (teknisi) yang melaporkan hasil.', relation: { type: 'external', text: 'griya_company.users (id)' } },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pencatatan hasil TSO.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan hasil TSO.', relation: null }
+                ]
+            },
+
+            // --- GROUP: REFERENCE DATA ---
+            {
+                name: 'rf_ticket_categories',
+                group: 'reference',
+                groupLabel: 'Data Referensi',
+                description: 'Tabel referensi kategori jenis komplain pelanggan (misal: Internet Mati / LOS, Koneksi Lambat, Gangguan Perangkat).',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik kategori tiket (UUID).', relation: null },
+                    { name: 'name', type: 'VARCHAR(50)', keys: ['UQ'], nullable: false, default: '-', definition: 'Nama kategori komplain.', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan kategori.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan kategori.', relation: null }
+                ]
+            },
+            {
+                name: 'rf_impacts',
+                group: 'reference',
+                groupLabel: 'Data Referensi',
+                description: 'Tabel referensi tingkat dampak atau cakupan gangguan yang teridentifikasi saat asesmen (misal: Single User, Massal / ODP).',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik dampak gangguan (UUID).', relation: null },
+                    { name: 'name', type: 'VARCHAR(50)', keys: ['UQ'], nullable: false, default: '-', definition: 'Nama klasifikasi dampak gangguan.', relation: null },
+                    { name: 'is_active', type: 'TINYINT(1)', keys: [], nullable: false, default: '1', definition: 'Status aktif referensi (1 = Aktif, 0 = Nonaktif).', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan data dampak.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan data dampak.', relation: null }
+                ]
+            },
+            {
+                name: 'rf_actions',
+                group: 'reference',
+                groupLabel: 'Data Referensi',
+                description: 'Tabel referensi daftar tindakan utama penanganan/troubleshooting yang dapat dipilih petugas.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik tindakan utama (UUID).', relation: null },
+                    { name: 'name', type: 'VARCHAR(50)', keys: ['UQ'], nullable: false, default: '-', definition: 'Nama tindakan utama.', relation: null },
+                    { name: 'is_active', type: 'TINYINT(1)', keys: [], nullable: false, default: '1', definition: 'Status aktif tindakan (1 = Aktif, 0 = Nonaktif).', relation: null },
+                    { name: 'is_single_per_ticket', type: 'TINYINT(1)', keys: [], nullable: false, default: '0', definition: 'Aturan pembatasan apakah tindakan ini hanya boleh dipilih satu kali per tiket (1 = Ya, 0 = Bebas).', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan referensi tindakan.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan referensi tindakan.', relation: null }
+                ]
+            },
+            {
+                name: 'rf_sub_actions',
+                group: 'reference',
+                groupLabel: 'Data Referensi',
+                description: 'Tabel referensi rincian sub-tindakan yang berada di bawah masing-masing tindakan utama (rf_actions).',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik sub-tindakan (UUID).', relation: null },
+                    { name: 'action_id', type: 'CHAR(36)', keys: ['FK'], nullable: false, default: '-', definition: 'ID tindakan utama induk.', relation: { type: 'fk', targetTable: 'rf_actions', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'name', type: 'VARCHAR(50)', keys: ['UQ'], nullable: false, default: '-', definition: 'Nama detail sub-tindakan.', relation: null },
+                    { name: 'is_active', type: 'TINYINT(1)', keys: [], nullable: false, default: '1', definition: 'Status aktif sub-tindakan (1 = Aktif, 0 = Nonaktif).', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan sub-tindakan.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan sub-tindakan.', relation: null }
+                ]
+            },
+            {
+                name: 'rf_assessment_points',
+                group: 'reference',
+                groupLabel: 'Data Referensi',
+                description: 'Tabel referensi daftar titik pemeriksaan (checklist diagnosa) standar untuk asesmen tiket komplain.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik poin asesmen (UUID).', relation: null },
+                    { name: 'name', type: 'VARCHAR(50)', keys: ['UQ'], nullable: false, default: '-', definition: 'Nama item/indikator yang diperiksa (misal: Status ONT, Redaman RX, Tagihan).', relation: null },
+                    { name: 'is_active', type: 'TINYINT(1)', keys: [], nullable: false, default: '1', definition: 'Status aktif poin asesmen (1 = Aktif, 0 = Nonaktif).', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembuatan poin asesmen.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan poin asesmen.', relation: null }
+                ]
+            },
+
+            // --- GROUP: TRANSACTION & LOGS ---
+            {
+                name: 'tr_tso_cancellations',
+                group: 'transaction',
+                groupLabel: 'Transaksi & Log',
+                description: 'Mencatat histori dan alasan pembatalan Work Order TSO beserta aktor yang membatalkannya.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik record pembatalan TSO (UUID).', relation: null },
+                    { name: 'tso_wo_id', type: 'CHAR(36)', keys: ['FK', 'UQ'], nullable: false, default: '-', definition: 'ID Work Order TSO yang dibatalkan (relasi 1-ke-1).', relation: { type: 'fk', targetTable: 'mt_tso_wo', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'canceled_by_type', type: 'VARCHAR(255)', keys: [], nullable: false, default: '-', definition: 'Nama kelas model polymorphic dari pelaku pembatalan.', relation: null },
+                    { name: 'canceled_by_id', type: 'VARCHAR(255)', keys: [], nullable: false, default: '-', definition: 'ID entitas pelaku pembatalan (polymorphic ID).', relation: null },
+                    { name: 'role', type: "ENUM('customer_care', 'technician', 'branch_manager')", keys: [], nullable: true, default: 'NULL', definition: 'Peran pihak yang mengajukan pembatalan TSO.', relation: null },
+                    { name: 'reason', type: 'TEXT', keys: [], nullable: true, default: 'NULL', definition: 'Alasan rinci pembatalan jadwal/WO TSO.', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembatalan terjadi.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan data pembatalan.', relation: null }
+                ]
+            },
+            {
+                name: 'tr_tso_reschedulations',
+                group: 'transaction',
+                groupLabel: 'Transaksi & Log',
+                description: 'Mencatat riwayat perubahan jadwal (reschedule) tanggal maupun sesi (phase) kunjungan teknisi pada Work Order TSO.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik transaksi penjadwalan ulang (UUID).', relation: null },
+                    { name: 'tso_wo_id', type: 'CHAR(36)', keys: ['FK'], nullable: false, default: '-', definition: 'ID Work Order TSO yang dijadwalkan ulang.', relation: { type: 'fk', targetTable: 'mt_tso_wo', targetCol: 'id', onDelete: 'CASCADE', onUpdate: 'CASCADE' } },
+                    { name: 'old_schedule', type: 'DATE', keys: [], nullable: false, default: '-', definition: 'Tanggal jadwal kunjungan sebelum diubah.', relation: null },
+                    { name: 'new_schedule', type: 'DATE', keys: [], nullable: false, default: '-', definition: 'Tanggal jadwal kunjungan baru setelah diubah.', relation: null },
+                    { name: 'old_phase', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Sesi/gelombang kunjungan sebelum diubah.', relation: null },
+                    { name: 'new_phase', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Sesi/gelombang kunjungan baru setelah diubah.', relation: null },
+                    { name: 'reschedule_reason', type: 'TEXT', keys: [], nullable: true, default: 'NULL', definition: 'Alasan dilakukannya penjadwalan ulang.', relation: null },
+                    { name: 'rescheduled_by', type: 'BIGINT UNSIGNED', keys: ['EXT'], nullable: false, default: '-', definition: 'ID pengguna yang melakukan perubahan jadwal.', relation: { type: 'external', text: 'griya_company.users (id)' } },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp transaksi reschedule.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan data reschedule.', relation: null }
+                ]
+            },
+            {
+                name: 'lg_activity_log',
+                group: 'transaction',
+                groupLabel: 'Transaksi & Log',
+                description: 'Tabel audit trail (Spatie Activity Log) yang merekam seluruh aktivitas perubahan data dan aksi pengguna dalam sistem.',
+                columns: [
+                    { name: 'id', type: 'CHAR(36)', keys: ['PK'], nullable: false, default: '-', definition: 'Identitas unik log aktivitas (UUID).', relation: null },
+                    { name: 'log_name', type: 'VARCHAR(255)', keys: [], nullable: true, default: 'NULL', definition: 'Kategori atau kanal nama log aktivitas.', relation: null },
+                    { name: 'description', type: 'TEXT', keys: [], nullable: false, default: '-', definition: 'Deskripsi aktivitas yang terjadi (misal: created, updated, deleted).', relation: null },
+                    { name: 'subject_type', type: 'VARCHAR(255)', keys: [], nullable: true, default: 'NULL', definition: 'Nama model/entitas objek yang dikenai aktivitas (polymorphic).', relation: null },
+                    { name: 'event', type: 'VARCHAR(255)', keys: [], nullable: true, default: 'NULL', definition: 'Nama peristiwa (event) spesifik yang memicu log.', relation: null },
+                    { name: 'subject_id', type: 'CHAR(36)', keys: [], nullable: true, default: 'NULL', definition: 'UUID dari record objek yang dikenai aktivitas.', relation: null },
+                    { name: 'causer_type', type: 'VARCHAR(255)', keys: [], nullable: true, default: 'NULL', definition: 'Nama model/entitas aktor yang melakukan aktivitas (polymorphic).', relation: null },
+                    { name: 'causer_id', type: 'CHAR(36)', keys: [], nullable: true, default: 'NULL', definition: 'UUID dari aktor/pengguna yang melakukan aktivitas.', relation: null },
+                    { name: 'properties', type: 'JSON', keys: [], nullable: true, default: 'NULL', definition: 'Data atribut sebelum (old) dan sesudah (attributes) perubahan dalam format JSON.', relation: null },
+                    { name: 'batch_uuid', type: 'CHAR(36)', keys: [], nullable: true, default: 'NULL', definition: 'UUID pengelompokan beberapa log yang terjadi dalam satu transaksi batch.', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pencatatan log.', relation: null },
+                    { name: 'updated_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Timestamp pembaruan log.', relation: null }
+                ]
+            },
+
+            // --- GROUP: SYSTEM LARAVEL ---
+            {
+                name: 'sessions',
+                group: 'system',
+                groupLabel: 'Sistem Laravel',
+                description: 'Menyimpan data sesi aktif pengguna aplikasi berbasis database driver.',
+                columns: [
+                    { name: 'id', type: 'VARCHAR(255)', keys: ['PK'], nullable: false, default: '-', definition: 'ID unik sesi pengguna.', relation: null },
+                    { name: 'user_id', type: 'CHAR(36)', keys: [], nullable: true, default: 'NULL', definition: 'UUID pengguna pemilik sesi (jika sudah login).', relation: null },
+                    { name: 'ip_address', type: 'VARCHAR(45)', keys: [], nullable: true, default: 'NULL', definition: 'Alamat IP klien (mendukung IPv4 dan IPv6).', relation: null },
+                    { name: 'user_agent', type: 'TEXT', keys: [], nullable: true, default: 'NULL', definition: 'Informasi browser dan sistem operasi klien.', relation: null },
+                    { name: 'payload', type: 'LONGTEXT', keys: [], nullable: false, default: '-', definition: 'Data sesi yang telah diserialisasi dan dienkripsi.', relation: null },
+                    { name: 'last_activity', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Unix timestamp aktivitas terakhir pada sesi ini.', relation: null }
+                ]
+            },
+            {
+                name: 'cache',
+                group: 'system',
+                groupLabel: 'Sistem Laravel',
+                description: 'Penyimpanan key-value cache aplikasi untuk mempercepat akses data sementara.',
+                columns: [
+                    { name: 'key', type: 'VARCHAR(255)', keys: ['PK'], nullable: false, default: '-', definition: 'Kunci unik item cache.', relation: null },
+                    { name: 'value', type: 'MEDIUMTEXT', keys: [], nullable: false, default: '-', definition: 'Nilai data cache yang terserialisasi.', relation: null },
+                    { name: 'expiration', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Waktu kedaluwarsa cache dalam format Unix timestamp.', relation: null }
+                ]
+            },
+            {
+                name: 'cache_locks',
+                group: 'system',
+                groupLabel: 'Sistem Laravel',
+                description: 'Mekanisme atomic lock pada cache untuk mencegah race condition pada proses bersamaan.',
+                columns: [
+                    { name: 'key', type: 'VARCHAR(255)', keys: ['PK'], nullable: false, default: '-', definition: 'Kunci unik lock.', relation: null },
+                    { name: 'owner', type: 'VARCHAR(255)', keys: [], nullable: false, default: '-', definition: 'Identitas proses pemilik lock saat ini.', relation: null },
+                    { name: 'expiration', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Waktu kedaluwarsa lock dalam format Unix timestamp.', relation: null }
+                ]
+            },
+            {
+                name: 'jobs',
+                group: 'system',
+                groupLabel: 'Sistem Laravel',
+                description: 'Antrean (queue) pekerjaan latar belakang (background jobs) yang menunggu dieksekusi worker.',
+                columns: [
+                    { name: 'id', type: 'BIGINT UNSIGNED', keys: ['PK'], nullable: false, default: 'AUTO_INCREMENT', definition: 'ID unik antrean job.', relation: null },
+                    { name: 'queue', type: 'VARCHAR(255)', keys: [], nullable: false, default: '-', definition: 'Nama kanal antrean tempat job berada.', relation: null },
+                    { name: 'payload', type: 'LONGTEXT', keys: [], nullable: false, default: '-', definition: 'Data kelas dan parameter job dalam format JSON.', relation: null },
+                    { name: 'attempts', type: 'TINYINT UNSIGNED', keys: [], nullable: false, default: '-', definition: 'Jumlah percobaan eksekusi yang telah dilakukan.', relation: null },
+                    { name: 'reserved_at', type: 'INT UNSIGNED', keys: [], nullable: true, default: 'NULL', definition: 'Unix timestamp saat job diambil oleh worker.', relation: null },
+                    { name: 'available_at', type: 'INT UNSIGNED', keys: [], nullable: false, default: '-', definition: 'Unix timestamp kapan job tersedia untuk diproses.', relation: null },
+                    { name: 'created_at', type: 'INT UNSIGNED', keys: [], nullable: false, default: '-', definition: 'Unix timestamp saat job dimasukkan ke antrean.', relation: null }
+                ]
+            },
+            {
+                name: 'job_batches',
+                group: 'system',
+                groupLabel: 'Sistem Laravel',
+                description: 'Mengelola sekumpulan antrean job yang dijalankan secara berkelompok (batch processing).',
+                columns: [
+                    { name: 'id', type: 'VARCHAR(255)', keys: ['PK'], nullable: false, default: '-', definition: 'UUID batch job.', relation: null },
+                    { name: 'name', type: 'VARCHAR(255)', keys: [], nullable: false, default: '-', definition: 'Nama identifikasi batch.', relation: null },
+                    { name: 'total_jobs', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Jumlah total job dalam batch ini.', relation: null },
+                    { name: 'pending_jobs', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Jumlah job yang belum selesai diproses.', relation: null },
+                    { name: 'failed_jobs', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Jumlah job yang gagal diproses.', relation: null },
+                    { name: 'failed_job_ids', type: 'LONGTEXT', keys: [], nullable: false, default: '-', definition: 'Daftar ID job yang mengalami kegagalan.', relation: null },
+                    { name: 'options', type: 'MEDIUMTEXT', keys: [], nullable: true, default: 'NULL', definition: 'Opsi konfigurasi tambahan batch.', relation: null },
+                    { name: 'cancelled_at', type: 'INT', keys: [], nullable: true, default: 'NULL', definition: 'Unix timestamp jika batch dibatalkan.', relation: null },
+                    { name: 'created_at', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Unix timestamp pembuatan batch.', relation: null },
+                    { name: 'finished_at', type: 'INT', keys: [], nullable: true, default: 'NULL', definition: 'Unix timestamp selesainya seluruh batch.', relation: null }
+                ]
+            },
+            {
+                name: 'failed_jobs',
+                group: 'system',
+                groupLabel: 'Sistem Laravel',
+                description: 'Menyimpan log detail dari background jobs yang gagal dijalankan beserta pesan error (exception).',
+                columns: [
+                    { name: 'id', type: 'BIGINT UNSIGNED', keys: ['PK'], nullable: false, default: 'AUTO_INCREMENT', definition: 'ID urut record kegagalan job.', relation: null },
+                    { name: 'uuid', type: 'VARCHAR(255)', keys: ['UQ'], nullable: false, default: '-', definition: 'UUID unik dari job yang gagal.', relation: null },
+                    { name: 'connection', type: 'TEXT', keys: [], nullable: false, default: '-', definition: 'Nama koneksi queue yang digunakan.', relation: null },
+                    { name: 'queue', type: 'TEXT', keys: [], nullable: false, default: '-', definition: 'Nama antrean tempat job gagal.', relation: null },
+                    { name: 'payload', type: 'LONGTEXT', keys: [], nullable: false, default: '-', definition: 'Isi data job yang gagal dieksekusi.', relation: null },
+                    { name: 'exception', type: 'LONGTEXT', keys: [], nullable: false, default: '-', definition: 'Stack trace dan pesan pengecualian (error) penyebab kegagalan.', relation: null },
+                    { name: 'failed_at', type: 'TIMESTAMP', keys: [], nullable: false, default: 'CURRENT_TIMESTAMP', definition: 'Waktu terjadinya kegagalan job.', relation: null }
+                ]
+            },
+            {
+                name: 'password_reset_tokens',
+                group: 'system',
+                groupLabel: 'Sistem Laravel',
+                description: 'Menyimpan token verifikasi untuk permintaan pengaturan ulang kata sandi pengguna.',
+                columns: [
+                    { name: 'email', type: 'VARCHAR(255)', keys: ['PK'], nullable: false, default: '-', definition: 'Alamat email pengguna yang meminta reset password.', relation: null },
+                    { name: 'token', type: 'VARCHAR(255)', keys: [], nullable: false, default: '-', definition: 'Token unik verifikasi reset password.', relation: null },
+                    { name: 'created_at', type: 'TIMESTAMP', keys: [], nullable: true, default: 'NULL', definition: 'Waktu pembuatan token reset.', relation: null }
+                ]
+            },
+            {
+                name: 'migrations',
+                group: 'system',
+                groupLabel: 'Sistem Laravel',
+                description: 'Mencatat riwayat file migrasi skema database Laravel yang telah dijalankan.',
+                columns: [
+                    { name: 'id', type: 'INT UNSIGNED', keys: ['PK'], nullable: false, default: 'AUTO_INCREMENT', definition: 'ID urut migrasi.', relation: null },
+                    { name: 'migration', type: 'VARCHAR(255)', keys: [], nullable: false, default: '-', definition: 'Nama file migrasi yang dieksekusi.', relation: null },
+                    { name: 'batch', type: 'INT', keys: [], nullable: false, default: '-', definition: 'Nomor gelombang (batch) eksekusi perintah artisan migrate.', relation: null }
+                ]
+            }
+        ];
+
+        // ============================================================================
+        // STATE & DOM REFERENCES
+        // ============================================================================
+        let currentGroup = 'all';
+        let currentSearch = '';
+
+        const sidebarNav = document.getElementById('sidebarNav');
+        const tablesContainer = document.getElementById('tablesContainer');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const visibleTableCount = document.getElementById('visibleTableCount');
+        const emptyState = document.getElementById('emptyState');
+        const resetAllBtn = document.getElementById('resetAllBtn');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        // ============================================================================
+        // HELPER FUNCTIONS
+        // ============================================================================
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2200);
+        }
+
+        function copyText(text) {
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast(`Disalin: ${text}`);
+        }
+
+        function jumpToTable(tableName) {
+            // Reset filters if target table is hidden
+            const targetObj = databaseSchema.find(t => t.name === tableName);
+            if (!targetObj) return;
+
+            if (currentGroup !== 'all' && currentGroup !== targetObj.group) {
+                setGroupFilter('all');
+            }
+            if (currentSearch !== '') {
+                currentSearch = '';
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                renderAll();
+            }
+
+            setTimeout(() => {
+                const el = document.getElementById(`table-${tableName}`);
+                if (el) {
+                    const yOffset = -84;
+                    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                    
+                    // Highlight effect
+                    el.classList.add('ring-2', 'ring-brand-500');
+                    setTimeout(() => {
+                        el.classList.remove('ring-2', 'ring-brand-500');
+                    }, 1600);
+                }
+            }, 50);
+        }
+
+        function renderKeyBadges(keys) {
+            if (!keys || keys.length === 0) return '';
+            return keys.map(k => {
+                if (k === 'PK') {
+                    return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/90 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Primary Key">PK</span>`;
+                }
+                if (k === 'FK') {
+                    return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/90 dark:text-blue-300 border border-blue-200 dark:border-blue-800" title="Foreign Key">FK</span>`;
+                }
+                if (k === 'EXT') {
+                    return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/90 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="Referensi Lintas-Database">EXT</span>`;
+                }
+                if (k === 'UQ') {
+                    return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-teal-100 text-teal-800 dark:bg-teal-950/90 dark:text-teal-300 border border-teal-200 dark:border-teal-800" title="Unique Constraint">UQ</span>`;
+                }
+                return '';
+            }).join(' ');
+        }
+
+        function renderRelationCell(rel) {
+            if (!rel) {
+                return `<span class="text-slate-400 dark:text-slate-600 text-xs">—</span>`;
+            }
+            if (rel.type === 'fk') {
+                return `
+                    <div class="flex flex-col gap-1">
+                        <button onclick="jumpToTable('${escapeHTML(rel.targetTable)}')" 
+                            class="inline-flex items-center gap-1.5 text-left font-mono text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline focus:outline-none group">
+                            <svg class="w-3.5 h-3.5 shrink-0 text-brand-500 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            <span>${escapeHTML(rel.targetTable)}.${escapeHTML(rel.targetCol)}</span>
+                        </button>
+                        <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                            ON DELETE ${escapeHTML(rel.onDelete)} &bull; ON UPDATE ${escapeHTML(rel.onUpdate)}
+                        </span>
+                    </div>
+                `;
+            }
+            if (rel.type === 'external') {
+                return `
+                    <div class="inline-flex items-center gap-1.5 text-xs font-mono text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2 py-1 rounded-lg border border-purple-200/70 dark:border-purple-800/60">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        <span>${escapeHTML(rel.text)}</span>
+                    </div>
+                `;
+            }
+            if (rel.type === 'referenced_by') {
+                return `
+                    <div class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">Parent Key:</span> ${escapeHTML(rel.text)}
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        function getGroupBadgeColor(group) {
+            switch (group) {
+                case 'master': return 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800';
+                case 'detail': return 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800';
+                case 'reference': return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800';
+                case 'transaction': return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800';
+                default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+            }
+        }
+
+        // ============================================================================
+        // RENDERING LOGIC
+        // ============================================================================
+        function getFilteredTables() {
+            const q = currentSearch.trim().toLowerCase();
+            return databaseSchema.filter(table => {
+                const matchGroup = currentGroup === 'all' || table.group === currentGroup;
+                if (!matchGroup) return false;
+                if (!q) return true;
+
+                // Match table name or description
+                if (table.name.toLowerCase().includes(q) || table.description.toLowerCase().includes(q)) {
+                    return true;
+                }
+                // Match any column name, type, definition, or relation
+                return table.columns.some(col => {
+                    const relText = col.relation ? (col.relation.targetTable || col.relation.text || '') : '';
+                    return (
+                        col.name.toLowerCase().includes(q) ||
+                        col.type.toLowerCase().includes(q) ||
+                        col.definition.toLowerCase().includes(q) ||
+                        relText.toLowerCase().includes(q)
+                    );
+                });
+            });
+        }
+
+        function renderSidebar(filteredTables) {
+            const groups = [
+                { key: 'master', label: 'Master Data' },
+                { key: 'detail', label: 'Detail Data' },
+                { key: 'reference', label: 'Data Referensi' },
+                { key: 'transaction', label: 'Transaksi & Log' },
+                { key: 'system', label: 'Sistem Laravel' }
+            ];
+
+            let html = '';
+            groups.forEach(g => {
+                const items = filteredTables.filter(t => t.group === g.key);
+                if (items.length === 0) return;
+
+                html += `
+                    <div>
+                        <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5 px-2">
+                            ${g.label} (${items.length})
+                        </h3>
+                        <ul class="space-y-0.5">
+                            ${items.map(t => `
+                                <li>
+                                    <button onclick="jumpToTable('${t.name}'); closeMobileSidebar();" 
+                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800 hover:text-brand-600 dark:hover:text-brand-400 transition flex items-center justify-between group">
+                                        <span class="truncate">${t.name}</span>
+                                        <span class="text-[10px] text-slate-400 group-hover:text-brand-500">${t.columns.length}</span>
+                                    </button>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+
+            sidebarNav.innerHTML = html;
+            visibleTableCount.textContent = filteredTables.length;
+        }
+
+        function renderTables(filteredTables) {
+            if (filteredTables.length === 0) {
+                tablesContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            const q = currentSearch.trim().toLowerCase();
+
+            tablesContainer.innerHTML = filteredTables.map(table => {
+                const fkCount = table.columns.filter(c => c.keys.includes('FK') || c.keys.includes('EXT')).length;
+
+                return `
+                <article id="table-${table.name}" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden transition-all duration-300">
+                    <!-- Table Card Header -->
+                    <div class="p-5 sm:p-6 bg-slate-50/70 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div class="space-y-1.5">
+                                <div class="flex flex-wrap items-center gap-2.5">
+                                    <h3 class="text-base sm:text-lg font-bold font-mono text-slate-900 dark:text-white tracking-tight">
+                                        ${escapeHTML(table.name)}
+                                    </h3>
+                                    <button onclick="copyText('${escapeHTML(table.name)}')" 
+                                        class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="Salin nama tabel">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                        </svg>
+                                    </button>
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border ${getGroupBadgeColor(table.group)}">
+                                        ${escapeHTML(table.groupLabel)}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    ${escapeHTML(table.description)}
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-slate-400 shrink-0">
+                                <span class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                    ${table.columns.length} Kolom
+                                </span>
+                                ${fkCount > 0 ? `
+                                <span class="px-2.5 py-1 rounded-lg bg-blue-50/70 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60">
+                                    ${fkCount} Relasi
+                                </span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Responsive Table Wrapper -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/40 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                    <th class="py-3 px-4 sm:px-6 w-56">Atribut (Kolom)</th>
+                                    <th class="py-3 px-4 w-48">Tipe Data &amp; Default</th>
+                                    <th class="py-3 px-4 min-w-[240px]">Definisi Atribut</th>
+                                    <th class="py-3 px-4 sm:px-6 w-64">Relasi Atribut</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
+                                ${table.columns.map(col => {
+                                    const isHighlighted = q && (
+                                        col.name.toLowerCase().includes(q) ||
+                                        col.definition.toLowerCase().includes(q)
+                                    );
+                                    const rowHighlightClass = isHighlighted ? 'bg-amber-50/60 dark:bg-amber-950/20' : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/30';
+
+                                    return `
+                                    <tr class="${rowHighlightClass} transition-colors align-top">
+                                        <!-- Attribute Name & Keys -->
+                                        <td class="py-3.5 px-4 sm:px-6">
+                                            <div class="flex flex-wrap items-center gap-1.5">
+                                                <span class="font-mono font-semibold text-xs sm:text-[13px] text-slate-900 dark:text-slate-100">
+                                                    ${escapeHTML(col.name)}
+                                                </span>
+                                                ${renderKeyBadges(col.keys)}
+                                            </div>
+                                            <div class="mt-1">
+                                                ${col.nullable 
+                                                    ? '<span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">NULLABLE</span>' 
+                                                    : '<span class="text-[10px] font-mono font-medium text-rose-600/80 dark:text-rose-400/80">NOT NULL</span>'}
+                                            </div>
+                                        </td>
+
+                                        <!-- Data Type & Default -->
+                                        <td class="py-3.5 px-4">
+                                            <code class="inline-block text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-pink-600 dark:text-pink-400 border border-slate-200/70 dark:border-slate-700 break-all">
+                                                ${escapeHTML(col.type)}
+                                            </code>
+                                            ${col.default !== '-' ? `
+                                                <div class="mt-1 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                                                    Default: <span class="text-slate-700 dark:text-slate-300">${escapeHTML(col.default)}</span>
+                                                </div>
+                                            ` : ''}
+                                        </td>
+
+                                        <!-- Definition -->
+                                        <td class="py-3.5 px-4 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                                            ${escapeHTML(col.definition)}
+                                        </td>
+
+                                        <!-- Relation -->
+                                        <td class="py-3.5 px-4 sm:px-6">
+                                            ${renderRelationCell(col.relation)}
+                                        </td>
+                                    </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+                `;
+            }).join('');
+        }
+
+        function renderAll() {
+            const filtered = getFilteredTables();
+            renderSidebar(filtered);
+            renderTables(filtered);
+        }
+
+        // ============================================================================
+        // EVENT LISTENERS (FILTER, SEARCH, MOBILE SIDEBAR, THEME)
+        // ============================================================================
+        function setGroupFilter(group) {
+            currentGroup = group;
+            filterBtns.forEach(btn => {
+                if (btn.dataset.group === group) {
+                    btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300', 'hover:bg-slate-200', 'dark:hover:bg-slate-700', 'font-medium');
+                    btn.classList.add('bg-brand-600', 'text-white', 'shadow-xs', 'font-semibold');
+                } else {
+                    btn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-700', 'dark:text-slate-300', 'hover:bg-slate-200', 'dark:hover:bg-slate-700', 'font-medium');
+                    btn.classList.remove('bg-brand-600', 'text-white', 'shadow-xs', 'font-semibold');
+                }
+            });
+            renderAll();
+        }
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setGroupFilter(btn.dataset.group);
+            });
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            if (currentSearch.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
+            renderAll();
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            currentSearch = '';
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            searchInput.focus();
+            renderAll();
+        });
+
+        resetAllBtn.addEventListener('click', () => {
+            currentSearch = '';
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            setGroupFilter('all');
+        });
+
+        // Mobile Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+
+        function openMobileSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            sidebarBackdrop.classList.remove('hidden');
+        }
+
+        function closeMobileSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            sidebarBackdrop.classList.add('hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', () => {
+            if (sidebar.classList.contains('-translate-x-full')) {
+                openMobileSidebar();
+            } else {
+                closeMobileSidebar();
+            }
+        });
+
+        sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+        // Dark / Light Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Initial Render
+        renderAll();
+    </script>
+</body>
+</html>

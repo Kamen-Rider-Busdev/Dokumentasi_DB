@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dokumentasi Database KIOS — Data Dictionary & Schema Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <!-- Left: Mobile Sidebar Toggle + Brand -->
+      <div class="flex items-center gap-3">
+        <button id="mobileMenuBtn" type="button" aria-label="Buka navigasi"
+          class="lg:hidden p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <div class="flex items-center gap-2.5 cursor-pointer" onclick="showOverview()">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="font-bold text-base sm:text-lg tracking-tight leading-none text-slate-900 dark:text-white">KIOS DB Docs</h1>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:block">Data Dictionary & Schema Explorer</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Global Search -->
+      <div class="flex-1 max-w-xl">
+        <div class="relative">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input id="globalSearch" type="text" placeholder="Cari skema, tabel, field, atau deskripsi... (Ctrl + K)"
+            class="w-full pl-10 pr-10 py-2 text-sm rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition placeholder:text-slate-400" />
+          <button id="clearSearchBtn" type="button" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Stats & Theme Toggle -->
+      <div class="flex items-center gap-2">
+        <button onclick="showOverview()" class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+          <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          Ringkasan Skema
+        </button>
+        <button id="themeToggle" type="button" aria-label="Ubah tema"
+          class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+          <svg id="sunIcon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="moonIcon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Wrapper -->
+  <div class="max-w-screen-2xl mx-auto flex min-h-[calc(100vh-4rem)] relative">
+
+    <!-- Mobile Backdrop -->
+    <div id="sidebarBackdrop" class="fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-xs hidden lg:hidden"></div>
+
+    <!-- Left Sidebar: Schemas & Tables Tree -->
+    <aside id="sidebar" class="fixed lg:sticky top-16 left-0 z-30 w-80 h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out">
+      <!-- Sidebar Filter Pills -->
+      <div class="p-3.5 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2 px-1">
+          <span class="font-semibold uppercase tracking-wider">Navigasi Skema</span>
+          <span id="tableCountBadge" class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full font-mono text-[11px]">45 Tabel</span>
+        </div>
+        <div class="grid grid-cols-2 gap-1.5" id="schemaFilterBtns">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Scrollable Tree List -->
+      <nav id="sidebarTree" class="flex-1 overflow-y-auto p-3 space-y-3">
+        <!-- Populated by JS -->
+      </nav>
+    </aside>
+
+    <!-- Right Content Area -->
+    <main id="mainContent" class="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+      <!-- Populated dynamically by JS -->
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900 dark:bg-slate-800 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg border border-slate-700 flex items-center gap-2">
+      <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      <span id="toastMessage">Disalin ke clipboard</span>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. DATABASE METADATA REPOSITORY (4 Schemas, 45 Tables, Fields & Relations)
+    // =========================================================================
+    const DB_SCHEMAS = [
+      {
+        id: 'kios_company',
+        name: 'kios_company',
+        title: 'Skema Perusahaan & Master Data',
+        badgeColor: 'blue',
+        description: 'Menyimpan data master internal perusahaan meliputi kantor cabang (branch), divisi kerja, akun pegawai/pengguna sistem, paket layanan internet, serta kategori terminasi pelanggan.',
+        tables: [
+          {
+            name: 'branches',
+            schema: 'kios_company',
+            description: 'Master data kantor cabang operasional dan wilayah regional perusahaan beserta titik koordinat geografisnya.',
+            columns: [
+              { name: 'id', type: 'BIGINT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik (Primary Key) kantor cabang.' },
+              { name: 'regional', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Nama wilayah atau regional operasional cabang.' },
+              { name: 'branch_name', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Nama resmi kantor cabang.' },
+              { name: 'kode_branch', type: 'VARCHAR(2)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Kode singkat 2 karakter sebagai identitas unik cabang (misal untuk prefix ID/VA).' },
+              { name: 'address', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Alamat lengkap lokasi kantor cabang.' },
+              { name: 'lat', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Koordinat garis lintang (Latitude) lokasi kantor cabang.' },
+              { name: 'lng', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Koordinat garis bujur (Longitude) lokasi kantor cabang.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pembuatan record data cabang.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pembaruan terakhir data cabang.' },
+            ]
+          },
+          {
+            name: 'divisions',
+            schema: 'kios_company',
+            description: 'Master daftar divisi atau departemen organisasi di dalam perusahaan (misal: Sales, NOC, Teknisi, Billing).',
+            columns: [
+              { name: 'id', type: 'INT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik divisi.' },
+              { name: 'nama_divisi', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama divisi atau departemen kerja.' },
+              { name: 'created_at', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu data divisi dibuat.' },
+              { name: 'updated_at', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu data divisi terakhir diubah.' },
+            ]
+          },
+          {
+            name: 'kategori_customer_terminates',
+            schema: 'kios_company',
+            description: 'Tabel referensi alasan atau kategori pemutusan layanan (terminasi) pelanggan.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik kategori terminasi.' },
+              { name: 'kategori', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Nama kategori alasan berhenti berlangganan (misal: Pindah Rumah, Kendala Jaringan, Biaya).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan data kategori.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan data kategori.' },
+            ]
+          },
+          {
+            name: 'service_packages',
+            schema: 'kios_company',
+            description: 'Katalog produk paket layanan internet (bandwidth/kecepatan), harga berlangganan, serta status ketersediaan formulir pendaftaran.',
+            columns: [
+              { name: 'id', type: 'INT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik paket layanan.' },
+              { name: 'nama_layanan', type: 'VARCHAR(250)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama komersial paket internet yang ditawarkan ke pelanggan.' },
+              { name: 'speed', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Kecepatan bandwidth paket dalam satuan Mbps.' },
+              { name: 'slug', type: 'VARCHAR(30)', key: 'UQ', nullable: false, defaultVal: '-', desc: 'Kode unik (slug) paket layanan untuk integrasi sistem billing dan radius.' },
+              { name: 'harga', type: 'DOUBLE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tarif harga berlangganan bulanan paket.' },
+              { name: 'tag', type: 'JSON', key: '', nullable: true, defaultVal: 'NULL', desc: 'Label atau metadata tambahan paket dalam format JSON (misal: promo, best seller).' },
+              { name: 'formulir', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '1', desc: 'Flag penanda apakah paket ditampilkan pada formulir pendaftaran baru (1 = Ya, 0 = Tidak).' },
+              { name: 'is_active', type: 'TINYINT', key: '', nullable: true, defaultVal: '1', desc: 'Status keaktifan paket saat ini (1 = Aktif, 0 = Nonaktif).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan data paket.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu perubahan terakhir data paket.' },
+            ]
+          },
+          {
+            name: 'users',
+            schema: 'kios_company',
+            description: 'Data pengguna aplikasi dan karyawan (Sales, Teknisi, Admin, Manager) lengkap dengan NIP, divisi, cabang, dan kredensial autentikasi.',
+            columns: [
+              { name: 'id', type: 'INT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik internal akun pengguna.' },
+              { name: 'branch_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke kantor cabang tempat karyawan bertugas (branches.id).' },
+              { name: 'is_admin', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Flag hak akses super admin sistem (1 = Admin, 0 = Non-admin).' },
+              { name: 'role', type: "ENUM('admin','manager')", key: '', nullable: true, defaultVal: 'NULL', desc: 'Peran manajerial pengguna dalam sistem.' },
+              { name: 'status_pegawai', type: "ENUM('training','staff','off')", key: '', nullable: true, defaultVal: 'NULL', desc: 'Status kepegawaian aktif karyawan (masa training, staff tetap, atau nonaktif/off).' },
+              { name: 'nama_lengkap', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama panggilan atau nama singkat karyawan untuk tampilan UI.' },
+              { name: 'full_name', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama lengkap resmi karyawan sesuai identitas.' },
+              { name: 'karyawan_nip', type: 'BIGINT UNSIGNED', key: 'UQ', nullable: true, defaultVal: 'NULL', desc: 'Nomor Induk Pegawai (NIP) unik yang menjadi referensi di tabel operasional dan penjualan.' },
+              { name: 'division_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke divisi kerja karyawan (divisions.id).' },
+              { name: 'password', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Hash kata sandi untuk autentikasi login.' },
+              { name: 'remember_token', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Token sesi login jangka panjang (Remember Me).' },
+              { name: 'refresh_token_expiry', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu kedaluwarsa refresh token API.' },
+              { name: 'created_at', type: 'DATETIME', key: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu akun dibuat.' },
+              { name: 'updated_at', type: 'DATETIME', key: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu akun terakhir diperbarui.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'kios_coverage',
+        name: 'kios_coverage',
+        title: 'Skema Infrastruktur & Jaringan FTTH',
+        badgeColor: 'emerald',
+        description: 'Mengelola topologi jaringan Fiber-To-The-Home (FTTH) mulai dari Router POP, VLAN, OLT, OLT Port, Area Cakupan (Polygon), Tiang (Pole), Titik Penempatan, Splitter/ODP, hingga redaman optik dan rute kabel.',
+        tables: [
+          {
+            name: 'coverage_areas',
+            schema: 'kios_coverage',
+            description: 'Mendefinisikan wilayah cakupan layanan (cluster/perumahan/kelurahan) beserta batas poligon peta, port OLT sumber, dan dokumen perizinan.',
+            columns: [
+              { name: 'id', type: 'INT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik area cakupan.' },
+              { name: 'polygon', type: 'JSON', key: '', nullable: true, defaultVal: 'NULL', desc: 'Array koordinat poligon batas wilayah coverage di peta digital.' },
+              { name: 'branch_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke cabang pemilik area (branches.id).' },
+              { name: 'olt_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke perangkat OLT utama yang melayani area ini (olts.id_olt).' },
+              { name: 'olt_port_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke port PON OLT spesifik yang menyuplai area ini (olts_ports.id_olt_port).' },
+              { name: 'nama_area', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama wilayah/cluster/perumahan cakupan.' },
+              { name: 'kode_area', type: 'VARCHAR(50)', key: 'UQ', nullable: true, defaultVal: 'NULL', desc: 'Kode unik area untuk penamaan ODP dan identitas teknis.' },
+              { name: 'olt', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama atau label OLT (denormalisasi untuk pencarian cepat).' },
+              { name: 'kode_olt', type: 'VARCHAR(40)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Kode identifikasi slot/port OLT terkait.' },
+              { name: 'open_area', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal resmi area dibuka untuk pemasaran (Open for Sale).' },
+              { name: 'penanggung_jawab', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama PIC/pengurus lingkungan (RT/RW/Developer) setempat.' },
+              { name: 'no_tlpn', type: 'VARCHAR(50)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor telepon kontak penanggung jawab wilayah.' },
+              { name: 'file_proposal', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Path/URL file dokumen proposal izin masuk wilayah.' },
+              { name: 'file_bak', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Path/URL file Berita Acara Kesepakatan (BAK) wilayah.' },
+              { name: 'area_primary_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Self-reference ke area induk (coverage_areas.id) jika area ini merupakan sub-area/ekspansi.' },
+              { name: 'old_name_area', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama lama area sebelum dilakukan pemekaran atau perubahan nama.' },
+              { name: 'is_primary', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: '1', desc: 'Penanda apakah area ini merupakan area utama (1) atau sub-area (0).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan record area.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan terakhir record area.' },
+            ]
+          },
+          {
+            name: 'olts',
+            schema: 'kios_coverage',
+            description: 'Inventaris perangkat Optical Line Terminal (OLT) aktif beserta parameter koneksi SNMP dan Telnet untuk monitoring/provisioning.',
+            columns: [
+              { name: 'id_olt', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik perangkat OLT.' },
+              { name: 'olt_ke', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor urut perangkat OLT.' },
+              { name: 'branch_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke cabang lokasi penempatan OLT (branches.id).' },
+              { name: 'router_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke router utama/POP tempat OLT terhubung (routers.id_router).' },
+              { name: 'type', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Tipe/merek perangkat OLT (misal: ZTE C320, Huawei MA5608T).' },
+              { name: 'port_snmp', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Port komunikasi protokol SNMP untuk pembacaan redaman/status ONU.' },
+              { name: 'port_telnet', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Port komunikasi Telnet/CLI untuk konfigurasi otomatis ONU.' },
+              { name: 'community_ro', type: 'VARCHAR(50)', key: '', nullable: true, defaultVal: 'NULL', desc: 'SNMP Read-Only community string.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu data OLT ditambahkan.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu data OLT diperbarui.' },
+            ]
+          },
+          {
+            name: 'olts_ports',
+            schema: 'kios_coverage',
+            description: 'Detail slot dan port PON pada masing-masing OLT beserta pemetaan VLAN PPPoE dan Hotspot dari Router.',
+            columns: [
+              { name: 'id_olt_port', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik port OLT.' },
+              { name: 'olt_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke perangkat OLT induk (olts.id_olt).' },
+              { name: 'router_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke router POP terkait (routers.id_router).' },
+              { name: 'router_vlan_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke konfigurasi VLAN yang digunakan port ini (routers_vlans.id_router_vlan).' },
+              { name: 'slot_ke', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Nomor slot card PON pada chassis OLT.' },
+              { name: 'port_ke', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Nomor port PON pada slot card OLT.' },
+              { name: 'kode_olt', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Kode numerik identifikasi kombinasi OLT/Slot/Port.' },
+              { name: 'olt', type: 'VARCHAR(50)', key: '', nullable: false, defaultVal: '-', desc: 'Label string identitas port OLT (misal: OLT1-1/1).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan record port.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan record port.' },
+            ]
+          },
+          {
+            name: 'placements',
+            schema: 'kios_coverage',
+            description: 'Titik lokasi fisik (koordinat GPS) tempat pemasangan perangkat jaringan seperti tiang, ODC, atau ODP.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik titik penempatan.' },
+              { name: 'branch_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke cabang (branches.id).' },
+              { name: 'area_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke area cakupan tempat titik berada (coverage_areas.id).' },
+              { name: 'nama_tempat', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Nama deskriptif lokasi titik penempatan.' },
+              { name: 'tiang_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '0', desc: 'Relasi ke data tiang fisik jika terpasang di tiang (pole.id).' },
+              { name: 'jenis_tempat', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Jenis struktur penempatan (misal: Tiang Sendiri, Tiang PLN, Dinding).' },
+              { name: 'alamat', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Alamat jalan/patokan lokasi titik.' },
+              { name: 'lat', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Koordinat Latitude lokasi penempatan.' },
+              { name: 'lng', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Koordinat Longitude lokasi penempatan.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan data titik.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan data titik.' },
+            ]
+          },
+          {
+            name: 'pole',
+            schema: 'kios_coverage',
+            description: 'Data aset fisik tiang jaringan fiber optik beserta spesifikasi teknis (tinggi, ukuran, ketebalan) dan nilai perolehan.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik tiang.' },
+              { name: 'branch_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke cabang pemilik aset tiang (branches.id).' },
+              { name: 'persediaan_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Referensi ID stok/inventaris gudang.' },
+              { name: 'ref', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Nomor referensi pengadaan/pemasangan tiang.' },
+              { name: 'vendor', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Nama vendor pemasok atau pelaksana tanam tiang.' },
+              { name: 'tinggi', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Spesifikasi tinggi tiang (misal: 7 Meter, 9 Meter).' },
+              { name: 'ukuran', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Diameter pipa tiang (misal: 3 inch, 4 inch).' },
+              { name: 'tebal', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Ketebalan plat besi tiang (dalam mm).' },
+              { name: 'harga', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Nilai harga aset tiang.' },
+              { name: 'nama_tiang', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Label kode penamaan tiang di lapangan.' },
+              { name: 'area_id', type: 'VARCHAR(30)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke area cakupan tempat tiang berdiri (coverage_areas.id).' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan data tiang.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan data tiang.' },
+            ]
+          },
+          {
+            name: 'routers',
+            schema: 'kios_coverage',
+            description: 'Master perangkat Router Gateway / BRAS di lokasi Point of Presence (POP) utama.',
+            columns: [
+              { name: 'id_router', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik router POP.' },
+              { name: 'router_ke', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Nomor urut perangkat router.' },
+              { name: 'lokasipop', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Nama lokasi gedung/server POP router berada.' },
+              { name: 'ip_address', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Alamat IP manajemen router.' },
+              { name: 'port_snmp_router', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Port SNMP untuk monitoring trafik dan sesi PPPoE router.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan data router.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan data router.' },
+            ]
+          },
+          {
+            name: 'routers_vlans',
+            schema: 'kios_coverage',
+            description: 'Alokasi ID VLAN untuk layanan PPPoE dan Hotspot pada masing-masing Router POP.',
+            columns: [
+              { name: 'id_router_vlan', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik konfigurasi VLAN router.' },
+              { name: 'router_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke router induk (routers.id_router).' },
+              { name: 'pppoe_vlan_id', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Tag VLAN ID yang digunakan untuk dial-up PPPoE pelanggan.' },
+              { name: 'hotspot_vlan_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tag VLAN ID untuk layanan hotspot/voucher (jika tersedia).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan record VLAN.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan record VLAN.' },
+            ]
+          },
+          {
+            name: 'spliters',
+            schema: 'kios_coverage',
+            description: 'Data perangkat Optical Splitter / ODP (Optical Distribution Point) baik level distribusi (parent) maupun akses pelanggan (child), lengkap dengan kapasitas port dan hierarkinya.',
+            columns: [
+              { name: 'id', type: 'BIGINT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik splitter/ODP.' },
+              { name: 'coverage_areas_primary_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke area cakupan utama (coverage_areas.id).' },
+              { name: 'coverage_areas_id', type: 'VARCHAR(50)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke sub-area cakupan spesifik lokasi ODP (coverage_areas.id).' },
+              { name: 'type_spliter', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Rasio pembagian optik splitter (misal: 1:4, 1:8, 1:16).' },
+              { name: 'parent_id', type: 'VARCHAR(30)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Self-reference ke splitter induk di hulu (spliters.id) pada topologi cascading.' },
+              { name: 'area_ke', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor urut area.' },
+              { name: 'parent_ke', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor urut/port splitter induk.' },
+              { name: 'spliter_ke', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor urut splitter/ODP di dalam area.' },
+              { name: 'jumlah_output', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Total kapasitas port output yang tersedia pada ODP (misal: 8 atau 16 port).' },
+              { name: 'placement_id', type: 'BIGINT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke titik koordinat lokasi ODP terpasang (placements.id).' },
+              { name: 'is_ready', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Status kesiapan ODP untuk menerima pelanggan baru (1 = Ready, 0 = Belum siap).' },
+              { name: 'status', type: "ENUM('parent','child','available')", key: '', nullable: true, defaultVal: 'NULL', desc: 'Peran splitter dalam hierarki jaringan (parent/ODC, child/ODP akses, atau available).' },
+              { name: 'parent_access_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'ID referensi splitter akses induk.' },
+              { name: 'is_show', type: 'TINYINT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag visibilitas ODP pada peta aplikasi sales/teknisi.' },
+              { name: 'is_need_check', type: 'TINYINT', key: '', nullable: true, defaultVal: '0', desc: 'Penanda apakah ODP perlu diaudit/dicek ulang oleh tim lapangan (1 = Perlu cek).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan record splitter.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan record splitter.' },
+            ]
+          },
+          {
+            name: 'spliters_dampings',
+            schema: 'kios_coverage',
+            description: 'Hasil pengukuran daya optik (redaman OPM dalam dBm) pada jalur input dan masing-masing port output (P1–P8) sebuah splitter.',
+            columns: [
+              { name: 'spliters_dampings_id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik hasil ukur redaman.' },
+              { name: 'spliters_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke splitter yang diukur (spliters.id).' },
+              { name: 'input', type: 'FLOAT', key: '', nullable: false, defaultVal: '-', desc: 'Nilai daya optik (dBm) pada kabel input utama sebelum masuk splitter.' },
+              { name: 'p1', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nilai redaman output (dBm) pada port 1.' },
+              { name: 'p2', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nilai redaman output (dBm) pada port 2.' },
+              { name: 'p3', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nilai redaman output (dBm) pada port 3.' },
+              { name: 'p4', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nilai redaman output (dBm) pada port 4.' },
+              { name: 'p5', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nilai redaman output (dBm) pada port 5.' },
+              { name: 'p6', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nilai redaman output (dBm) pada port 6.' },
+              { name: 'p7', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nilai redaman output (dBm) pada port 7.' },
+              { name: 'p8', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nilai redaman output (dBm) pada port 8.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pencatatan hasil ukur.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pembaruan hasil ukur.' },
+            ]
+          },
+          {
+            name: 'spliters_route',
+            schema: 'kios_coverage',
+            description: 'Data jalur penarikan kabel feeder/akses menuju splitter beserta panjang kabel dan titik koordinat polyline peta.',
+            columns: [
+              { name: 'id_route', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik rute kabel splitter.' },
+              { name: 'spliters_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke splitter tujuan (spliters.id).' },
+              { name: 'length', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Panjang jalur kabel dalam nilai numerik (meter).' },
+              { name: 'length_text', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Teks format jarak rute kabel (misal: "245 m").' },
+              { name: 'info', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Keterangan teknis jalur kabel (jenis core/kapasitas kabel).' },
+              { name: 'points', type: 'JSON', key: '', nullable: true, defaultVal: 'NULL', desc: 'Daftar titik koordinat lat/lng pembentuk garis jalur kabel di peta.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan rute.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan rute.' },
+            ]
+          },
+          {
+            name: 'splitter_documents',
+            schema: 'kios_coverage',
+            description: 'Dokumentasi foto hasil pengukuran dan pengujian tiap port splitter pada pekerjaan distribusi.',
+            columns: [
+              { name: 'id_document', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik dokumen foto port.' },
+              { name: 'wo_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke Work Order distribusi terkait (distri_work_orders.distri_work_orders_id).' },
+              { name: 'port_ke', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor port splitter yang didokumentasikan.' },
+              { name: 'category', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Kategori foto dokumentasi (misal: Foto OPM Port, Foto Patchcord).' },
+              { name: 'url', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'URL/Path penyimpanan file foto.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu unggah dokumen.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan dokumen.' },
+            ]
+          },
+          {
+            name: 'splitter_installations',
+            schema: 'kios_coverage',
+            description: 'Dokumentasi foto fisik pemasangan box ODP/splitter di lapangan dari berbagai sudut pandang.',
+            columns: [
+              { name: 'id_document', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik foto instalasi.' },
+              { name: 'wo_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke Work Order distribusi (distri_work_orders.distri_work_orders_id).' },
+              { name: 'category', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Jenis foto instalasi (misal: Tampak Jauh, Tampak Dekat, Dalam Box).' },
+              { name: 'url', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'URL/Path penyimpanan file foto instalasi.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu unggah foto.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan foto.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'kios_customers',
+        name: 'kios_customers',
+        title: 'Skema Pelanggan, Billing & Pembayaran',
+        badgeColor: 'amber',
+        description: 'Inti data pelanggan internet, detail alamat, modem ONT, status berlangganan, Virtual Account (VA), tagihan berulang (recurring billing), riwayat pembayaran, isolir, notifikasi WhatsApp, hingga terminasi.',
+        tables: [
+          {
+            name: 'customers',
+            schema: 'kios_customers',
+            description: 'Tabel utama profil pelanggan aktif maupun historis, mencakup identitas pribadi, kredensial PPPoE, perangkat ONT, port ODP, paket layanan, dan status langganan.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik (Primary Key) pelanggan.' },
+              { name: 'branch_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke cabang yang melayani pelanggan (branches.id).' },
+              { name: 'prospects_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Referensi ID data prospek awal sebelum menjadi pelanggan.' },
+              { name: 'sales_nip_head', type: 'BIGINT', key: 'FK', nullable: true, defaultVal: '12', desc: 'NIP koordinator/head sales yang membawahi akuisisi (users.karyawan_nip).' },
+              { name: 'role', type: 'VARCHAR(10)', key: '', nullable: true, defaultVal: "'manager'", desc: 'Role penginput data pendaftaran pelanggan.' },
+              { name: 'sales_nip', type: 'BIGINT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP tenaga sales yang mengakuisisi pelanggan (users.karyawan_nip).' },
+              { name: 'sales_phones_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'ID perangkat/nomor telepon sales yang digunakan saat pendaftaran.' },
+              { name: 'sales_nip_survey', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP petugas yang melakukan survei lokasi pelanggan (users.karyawan_nip).' },
+              { name: 'type_customer', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Kode tipe pelanggan (misal: 1 = Reguler/Rumahan, 2 = Bisnis/SOHO).' },
+              { name: 'pppoe_secret', type: 'VARCHAR(255)', key: 'UQ', nullable: true, defaultVal: 'NULL', desc: 'Username unik autentikasi PPPoE pelanggan pada router/RADIUS.' },
+              { name: 'old_pppoe_secret', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Username PPPoE lama jika pelanggan pernah melakukan migrasi/pindah titik.' },
+              { name: 'nama', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Nama lengkap pelanggan terdaftar.' },
+              { name: 'no_tlp', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor telepon/WhatsApp aktif pelanggan untuk pengiriman tagihan.' },
+              { name: 'resourcename', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Sumber informasi pendaftaran pelanggan (misal: Brosur, Instagram, Referensi).' },
+              { name: 'service_packages_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke paket layanan internet yang diambil (service_packages.id).' },
+              { name: 'coverage_areas_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke area cakupan lokasi rumah pelanggan (coverage_areas.id).' },
+              { name: 'spliter_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke ODP/splitter tempat kabel dropcore pelanggan terhubung (spliters.id).' },
+              { name: 'cashback_receiver_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Self-reference ke ID pelanggan pereferensi (referral) penerima cashback (customers.id).' },
+              { name: 'port_access', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor port fisik pada box ODP tempat kabel pelanggan ditancapkan.' },
+              { name: 'sn_modem', type: 'VARCHAR(30)', key: 'UQ', nullable: true, defaultVal: 'NULL', desc: 'Serial Number (SN) unik perangkat modem ONT di rumah pelanggan.' },
+              { name: 'no_onu', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor indeks registrasi ONU pada port PON OLT.' },
+              { name: 'pppoe_vlan_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'VLAN ID layanan PPPoE yang dikonfigurasi pada ONT pelanggan.' },
+              { name: 'hotspot_vlan_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'VLAN ID layanan Hotspot pada ONT pelanggan.' },
+              { name: 'olt_rx', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Level sinyal optik yang diterima OLT dari ONT pelanggan (dBm).' },
+              { name: 'onu_rx', type: 'FLOAT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Level sinyal optik yang diterima ONT pelanggan dari OLT (dBm).' },
+              { name: 'va', type: 'VARCHAR(30)', key: 'UQ', nullable: true, defaultVal: 'NULL', desc: 'Nomor Virtual Account unik milik pelanggan untuk pembayaran bulanan.' },
+              { name: 'subscribe_start', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal mulai aktif berlangganan.' },
+              { name: 'subscribe_expired', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal jatuh tempo masa aktif berlangganan saat ini.' },
+              { name: 'subscribe_status', type: "ENUM('pra_wo','paid','aktif_berlangganan','isolir','terminate','cancel')", key: '', nullable: true, defaultVal: 'NULL', desc: 'Status siklus hidup langganan pelanggan saat ini.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan record pelanggan.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pembaruan terakhir data pelanggan.' },
+            ]
+          },
+          {
+            name: 'customers_alamat_maps',
+            schema: 'kios_customers',
+            description: 'Detail alamat administratif (jalan, kelurahan, kecamatan, kota) dan titik koordinat GPS rumah pelanggan.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik record alamat peta.' },
+              { name: 'pppoe_secret', type: 'VARCHAR(255)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi 1-ke-1 ke akun pelanggan (customers.pppoe_secret).' },
+              { name: 'm_type', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tipe properti/bangunan (Rumah, Ruko, Kos, Kantor).' },
+              { name: 'm_no', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor rumah/blok/kavling.' },
+              { name: 'm_jln', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama jalan atau komplek perumahan.' },
+              { name: 'm_kel', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama kelurahan/desa.' },
+              { name: 'm_kec', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama kecamatan.' },
+              { name: 'm_kota', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama kota/kabupaten.' },
+              { name: 'lat', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Koordinat Latitude lokasi pemasangan modem.' },
+              { name: 'lng', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Koordinat Longitude lokasi pemasangan modem.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pembuatan data.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pembaruan data.' },
+            ]
+          },
+          {
+            name: 'customers_alamat_terpasang',
+            schema: 'kios_customers',
+            description: 'Alamat teks lengkap lokasi instalasi layanan beserta informasi RT dan RW.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik alamat terpasang.' },
+              { name: 'pppoe_secret', type: 'VARCHAR(255)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi 1-ke-1 ke akun pelanggan (customers.pppoe_secret).' },
+              { name: 'alamat', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Deskripsi alamat lengkap instalasi.' },
+              { name: 'rt', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor Rukun Tetangga (RT).' },
+              { name: 'rw', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor Rukun Warga (RW).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pembuatan record.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pembaruan record.' },
+            ]
+          },
+          {
+            name: 'customer_document_details',
+            schema: 'kios_customers',
+            description: 'Menyimpan tautan berkas dokumen identitas pelanggan (KTP, foto rumah, bukti bayar awal, dll).',
+            columns: [
+              { name: 'id_detail_dokumen', type: 'INT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik berkas dokumen pelanggan.' },
+              { name: 'customer_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke pelanggan pemilik dokumen (customers.id).' },
+              { name: 'url', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'URL atau path penyimpanan file dokumen.' },
+              { name: 'category', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Kategori dokumen (misal: KTP, Selfie KTP, Foto Rumah).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu unggah dokumen.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pembaruan dokumen.' },
+            ]
+          },
+          {
+            name: 'customer_banks',
+            schema: 'kios_customers',
+            description: 'Data rekening bank pelanggan yang terverifikasi untuk keperluan pencairan cashback referral atau refund.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik rekening bank pelanggan.' },
+              { name: 'customer_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke pelanggan pemilik rekening (customers.id).' },
+              { name: 'inactived_by', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'ID admin yang menonaktifkan rekening (users.id).' },
+              { name: 'input_by', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'ID user yang menginput data rekening (users.id).' },
+              { name: 'inquiry_key', type: 'TEXT', key: '', nullable: false, defaultVal: '-', desc: 'Kunci/token hasil pengecekan validitas rekening (bank inquiry).' },
+              { name: 'bank_code', type: 'VARCHAR(20)', key: '', nullable: false, defaultVal: '-', desc: 'Kode kliring/transfer bank (misal: BCA, BRI, MANDIRI).' },
+              { name: 'bank_name', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Nama resmi bank.' },
+              { name: 'fee_transfer', type: 'DOUBLE', key: '', nullable: false, defaultVal: '-', desc: 'Biaya admin transfer antarbank.' },
+              { name: 'account_holder', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama pemilik rekening sesuai hasil inquiry bank.' },
+              { name: 'account_number', type: 'VARCHAR(50)', key: '', nullable: false, defaultVal: '-', desc: 'Nomor rekening bank pelanggan.' },
+              { name: 'status', type: 'VARCHAR(50)', key: '', nullable: false, defaultVal: "''", desc: 'Status teks respon API perbankan.' },
+              { name: 'account_status', type: "ENUM('inquiry','on_review','active','invalid','inactive','inactive_by_admin')", key: '', nullable: false, defaultVal: '-', desc: 'Status validasi dan keaktifan rekening dalam sistem.' },
+              { name: 'is_blocked', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Penanda pemblokiran pencairan ke rekening ini (1 = Diblokir).' },
+              { name: 'approve_datetime', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu persetujuan rekening.' },
+              { name: 'inactive_reason', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Alasan penonaktifan rekening.' },
+              { name: 'inactive_datetime', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu penonaktifan rekening.' },
+              { name: 'last_chat_datetime', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu interaksi chat verifikasi terakhir.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pembuatan record.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pembaruan record.' },
+            ]
+          },
+          {
+            name: 'va_customers',
+            schema: 'kios_customers',
+            description: 'Master pemetaan nomor Virtual Account (VA) pelanggan beserta nominal tagihan dasar dan potongan diskon.',
+            columns: [
+              { name: 'id', type: 'BIGINT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik record VA.' },
+              { name: 'va', type: 'VARCHAR(10)', key: 'UQ', nullable: false, defaultVal: '-', desc: 'Nomor unik Virtual Account pembayaran.' },
+              { name: 'customer_personal_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi 1-ke-1 ke tabel pelanggan (customers.id).' },
+              { name: 'aplikasi', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Kode sumber aplikasi/sistem pembentuk VA.' },
+              { name: 'customer_name', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama pelanggan yang muncul pada layar ATM/Mobile Banking saat pembayaran.' },
+              { name: 'amount', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nominal tagihan standar pelanggan.' },
+              { name: 'discount', type: 'INT', key: '', nullable: false, defaultVal: '0', desc: 'Nominal potongan diskon tagihan (Rupiah).' },
+              { name: 'is_discount_permanent', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Flag apakah diskon berlaku selamanya (1) atau hanya satu kali tagihan (0).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan VA.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan VA.' },
+            ]
+          },
+          {
+            name: 'recurring_billings',
+            schema: 'kios_customers',
+            description: 'Daftar tagihan bulanan (invoice) yang diterbitkan secara berkala untuk setiap pelanggan menjelang jatuh tempo.',
+            columns: [
+              { name: 'id_recurring_billing', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik tagihan bulanan.' },
+              { name: 'va', type: 'VARCHAR(45)', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke nomor Virtual Account pelanggan (customers.va).' },
+              { name: 'service_packages_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke paket layanan yang ditagihkan (service_packages.id).' },
+              { name: 'subscribe_status', type: 'VARCHAR(45)', key: '', nullable: false, defaultVal: '-', desc: 'Status langganan pelanggan saat tagihan diterbitkan.' },
+              { name: 'exp_date', type: 'DATE', key: '', nullable: false, defaultVal: '-', desc: 'Tanggal jatuh tempo tagihan.' },
+              { name: 'amount', type: 'DOUBLE', key: '', nullable: false, defaultVal: '-', desc: 'Total nominal tagihan yang harus dibayar.' },
+              { name: 'terbayar', type: 'TINYINT', key: '', nullable: false, defaultVal: '0', desc: 'Status pelunasan tagihan (1 = Lunas, 0 = Belum bayar).' },
+              { name: 'history_paids_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke transaksi pembayaran yang melunasi tagihan ini (history_paids.id).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu penerbitan tagihan.' },
+              { name: 'modified', type: 'DATETIME', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu terakhir status tagihan diperbarui.' },
+            ]
+          },
+          {
+            name: 'history_paids',
+            schema: 'kios_customers',
+            description: 'Log lengkap seluruh transaksi pembayaran yang masuk melalui Payment Gateway (VA/QRIS/Retail) maupun transfer manual.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik transaksi pembayaran.' },
+              { name: 'trx_id', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'ID transaksi unik dari sistem atau payment gateway.' },
+              { name: 'merchant_id', type: 'VARCHAR(20)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Kode merchant payment gateway.' },
+              { name: 'merchant', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama penyedia layanan payment gateway (misal: Faspay, Midtrans, Xendit).' },
+              { name: 'chanel', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Kanal pembayaran yang digunakan pelanggan.' },
+              { name: 'va', type: 'VARCHAR(100)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke nomor Virtual Account pelanggan pembayar (customers.va).' },
+              { name: 'payment_reff', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor referensi resi pembayaran dari bank.' },
+              { name: 'payment_date', type: 'DATETIME(6)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu presisi pembayaran diterima oleh sistem bank.' },
+              { name: 'payment_status_code', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Kode status pembayaran dari gateway (misal: 2 = Sukses).' },
+              { name: 'payment_status_desc', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Deskripsi status pembayaran.' },
+              { name: 'bill_total', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Total nominal yang ditagihkan.' },
+              { name: 'payment_total', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Total nominal yang dibayarkan pelanggan.' },
+              { name: 'payment_channel_uid', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Kode unik kanal bank/e-wallet.' },
+              { name: 'payment_channel', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama bank/e-wallet tempat pelanggan membayar (misal: BCA VA, Alfamart).' },
+              { name: 'signature', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Hash signature validasi keamanan callback webhook.' },
+              { name: 'subscribe_status', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Status langganan pelanggan sesaat sebelum pembayaran diproses.' },
+              { name: 'messages_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke pesan notifikasi tagihan terkait (messages.id_messages).' },
+              { name: 'diffBayar', type: 'SMALLINT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Selisih hari antara tanggal pembayaran dengan tanggal jatuh tempo.' },
+              { name: 'kirim_accounting', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag status sinkronisasi jurnal ke sistem akuntansi eksternal.' },
+              { name: 'kirim_accounting_kios', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag status sinkronisasi jurnal ke akuntansi internal KIOS.' },
+              { name: 'kirim_wa', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag apakah bukti lunas WhatsApp sudah terkirim ke pelanggan.' },
+              { name: 'hidupkan_radius', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag apakah sistem sudah membuka blokir isolir di RADIUS.' },
+              { name: 'tipe_transaksi', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Jenis transaksi (misal: Pasang Baru, Perpanjangan Bulanan).' },
+              { name: 'exp_date', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal jatuh tempo periode tagihan ini.' },
+              { name: 'tgl_jatuh_tempo_sebelumnya', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal masa aktif sebelum pembayaran masuk.' },
+              { name: 'tgl_jatuh_tempo_selanjutnya', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal masa aktif baru setelah diperpanjang otomatis.' },
+              { name: 'nominal_discount', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Potongan diskon yang diterapkan pada transaksi ini.' },
+              { name: 'slug_paket', type: 'VARCHAR(30)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke kode slug paket layanan saat transaksi terjadi (service_packages.slug).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu record transaksi disimpan.' },
+              { name: 'url_bukti_transfer', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'URL foto bukti transfer (khusus pembayaran manual).' },
+              { name: 'billing_nip', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'NIP staf billing yang memverifikasi pembayaran manual.' },
+            ]
+          },
+          {
+            name: 'recuiring_billings_errors',
+            schema: 'kios_customers',
+            description: 'Log pencatatan kegagalan proses rekonsiliasi atau perpanjangan masa aktif otomatis pada sistem recurring billing.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik log error.' },
+              { name: 'history_paids_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke transaksi pembayaran yang mengalami kegagalan proses (history_paids.id).' },
+              { name: 'keterangan', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Pesan detail penyebab kegagalan proses.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu terjadinya error.' },
+            ]
+          },
+          {
+            name: 'history_layanans',
+            schema: 'kios_customers',
+            description: 'Riwayat permintaan perubahan paket layanan (upgrade atau downgrade kecepatan) yang diajukan pelanggan.',
+            columns: [
+              { name: 'id_history_layanans', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik riwayat perubahan paket.' },
+              { name: 'va', type: 'VARCHAR(30)', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke nomor Virtual Account pelanggan (customers.va).' },
+              { name: 'status', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Jenis/status perubahan (Upgrade, Downgrade, Scheduled).' },
+              { name: 'subscribe_expired', type: 'DATE', key: '', nullable: false, defaultVal: '-', desc: 'Tanggal siklus tagihan saat paket baru mulai berlaku.' },
+              { name: 'from_pakets_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke paket layanan lama (service_packages.id).' },
+              { name: 'to_pakets_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke paket layanan tujuan (service_packages.id).' },
+              { name: 'is_apply', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Flag apakah profil bandwidth baru sudah diterapkan ke RADIUS/Router (1 = Sudah).' },
+              { name: 'apply_time', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu eksekusi penerapan paket baru.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pengajuan perubahan paket.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pembaruan record.' },
+            ]
+          },
+          {
+            name: 'history_customer_isolirs',
+            schema: 'kios_customers',
+            description: 'Log eksekusi pemblokiran sementara (isolir) layanan internet akibat keterlambatan pembayaran beserta status pengiriman pengingat H-2, H-0, dan H+7.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik log isolir.' },
+              { name: 'personal_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke ID pelanggan (customers.id).' },
+              { name: 'date_isolir', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal penjadwalan/eksekusi isolir.' },
+              { name: 'time', type: 'TIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Jam eksekusi pemutusan akses di RADIUS.' },
+              { name: 'is_isolir', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Flag status apakah pelanggan saat ini berstatus terisolir (1 = Ya).' },
+              { name: 'is_hm2_msg', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Flag terkirimnya pesan pengingat H-2 sebelum jatuh tempo.' },
+              { name: 'is_hm0_msg', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Flag terkirimnya pesan peringatan pada hari H jatuh tempo.' },
+              { name: 'is_hp7_msg', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Flag terkirimnya pesan peringatan H+7 setelah jatuh tempo.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan log.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan log.' },
+            ]
+          },
+          {
+            name: 'messages',
+            schema: 'kios_customers',
+            description: 'Antrean dan status pengiriman notifikasi pesan WhatsApp otomatis (tagihan, pengingat, isolir) serta status mematikan sesi RADIUS.',
+            columns: [
+              { name: 'id_messages', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik pesan notifikasi.' },
+              { name: 'error', type: 'TINYINT', key: '', nullable: false, defaultVal: '0', desc: 'Flag penanda kegagalan pengiriman pesan WhatsApp (1 = Error).' },
+              { name: 'error_tmstamp', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu terjadinya kegagalan pengiriman.' },
+              { name: 'status_pesan', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Jenis template pesan yang dikirim (misal: H-3, H-0, Isolir, Lunas).' },
+              { name: 'subscribe_expired_messages', type: 'DATE', key: '', nullable: false, defaultVal: '-', desc: 'Tanggal jatuh tempo yang tercantum dalam pesan.' },
+              { name: 'pppoe_secret', type: 'VARCHAR(100)', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke pelanggan penerima pesan (customers.pppoe_secret).' },
+              { name: 'terbayar', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Status apakah tagihan terkait pesan ini sudah dilunasi (1 = Lunas).' },
+              { name: 'pesan_terkirim', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Status keberhasilan pengiriman ke WA Gateway (1 = Terkirim).' },
+              { name: 'pesan_terkirim_tmstamp', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pesan berhasil terkirim.' },
+              { name: 'radius_off', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Penanda apakah proses ini juga menonaktifkan akun di RADIUS (isolir).' },
+              { name: 'radius_off_tmstamp', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu eksekusi pemutusan RADIUS.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pembuatan antrean pesan.' },
+            ]
+          },
+          {
+            name: 'messages_error_logs',
+            schema: 'kios_customers',
+            description: 'Log teknis pencatatan error pada worker pengiriman pesan WhatsApp dan otomasi billing.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik log error pesan.' },
+              { name: 'pos', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Posisi fungsi/service tempat error terjadi.' },
+              { name: 'couse', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Pesan error atau penyebab kegagalan.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu terjadinya error.' },
+            ]
+          },
+          {
+            name: 'modem_replaces',
+            schema: 'kios_customers',
+            description: 'Riwayat pergantian perangkat modem ONT pelanggan (misal akibat rusak atau upgrade perangkat) dari SN lama ke SN baru.',
+            columns: [
+              { name: 'id_modem_replace', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik pergantian modem.' },
+              { name: 'status', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Status tiket pergantian modem.' },
+              { name: 'status_progress', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Tahapan progres teknis (misal: Konfigurasi OLT, Selesai).' },
+              { name: 'pppoe_secret', type: 'VARCHAR(30)', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke pelanggan yang diganti modemnya (customers.pppoe_secret).' },
+              { name: 'sn_lama', type: 'VARCHAR(50)', key: '', nullable: false, defaultVal: '-', desc: 'Serial Number perangkat ONT lama yang ditarik.' },
+              { name: 'sn_baru', type: 'VARCHAR(50)', key: '', nullable: false, defaultVal: '-', desc: 'Serial Number perangkat ONT baru yang dipasang.' },
+              { name: 'keterangan', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Catatan alasan pergantian modem (misal: Mati total, LOS merah).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pengajuan ganti modem.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan status.' },
+            ]
+          },
+          {
+            name: 'customer_olts',
+            schema: 'kios_customers',
+            description: 'Tabel sinkronisasi konfigurasi ONU pelanggan yang terbaca langsung dari perangkat OLT (nama asli di skema: kios_customers.olts).',
+            columns: [
+              { name: 'id_olt', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik record sinkronisasi ONU.' },
+              { name: 'olt', type: 'VARCHAR(45)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nama perangkat OLT tempat ONU terdaftar.' },
+              { name: 'interface', type: 'VARCHAR(45)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Interface GPON/EPON pada OLT (misal: gpon-olt_1/1/1).' },
+              { name: 'no_onu', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor indeks ONU pada interface PON tersebut.' },
+              { name: 'sn', type: 'VARCHAR(45)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Serial Number modem yang terbaca di OLT.' },
+              { name: 'pppoe_secret', type: 'VARCHAR(100)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke akun PPPoE pelanggan (customers.pppoe_secret).' },
+              { name: 'password', type: 'VARCHAR(45)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Password PPPoE yang tertanam pada profil WAN ONU.' },
+              { name: 'description', type: 'VARCHAR(45)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Deskripsi nama ONU di konfigurasi OLT.' },
+              { name: 'vlan_pppoe', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'VLAN ID PPPoE aktif pada ONU.' },
+              { name: 'vlan_hotspot', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'VLAN ID Hotspot aktif pada ONU.' },
+              { name: 'is_abnormal', type: 'TINYINT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag jika ditemukan ketidaksesuaian (mismatch) antara data OLT dan database pelanggan.' },
+            ]
+          },
+          {
+            name: 'customers_terminates',
+            schema: 'kios_customers',
+            description: 'Arsip pencatatan pelanggan yang berhenti berlangganan (putus permanen) beserta informasi pencabutan port ODP dan perangkat.',
+            columns: [
+              { name: 'id_terminate', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik data terminasi.' },
+              { name: 'pppoe_secret', type: 'VARCHAR(100)', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke pelanggan yang diterminasi (customers.pppoe_secret).' },
+              { name: 'status_berlangganan', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Status akhir sebelum terminasi.' },
+              { name: 'spliter_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke ODP tempat port pelanggan dilepas (spliters.id).' },
+              { name: 'port_access', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Nomor port ODP yang dibebaskan kembali.' },
+              { name: 'no_onu', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Nomor ONU pada OLT yang dihapus konfigurasinya.' },
+              { name: 'date_terminate', type: 'DATE', key: '', nullable: false, defaultVal: '-', desc: 'Tanggal efektif pemutusan langganan.' },
+              { name: 'kategori_id', type: 'VARCHAR(20)', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke kategori alasan terminasi (kategori_customer_terminates.id).' },
+              { name: 'keterangan', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Catatan detail alasan pelanggan berhenti.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan record terminasi.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu pembaruan record terminasi.' },
+            ]
+          },
+          {
+            name: 'customers_places',
+            schema: 'kios_customers',
+            description: 'Data panjang tarikan kabel dropcore dari ODP ke lokasi rumah pelanggan/prospek.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik rute dropcore pelanggan.' },
+              { name: 'prospect_id', type: 'BIGINT', key: '', nullable: false, defaultVal: '-', desc: 'ID prospek/pelanggan terkait.' },
+              { name: 'length', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Panjang jalur kabel dropcore dalam meter.' },
+              { name: 'length_text', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Teks deskripsi jarak tarikan kabel.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan data.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan data.' },
+            ]
+          },
+          {
+            name: 'customers_points',
+            schema: 'kios_customers',
+            description: 'Titik-titik koordinat (polyline) jalur tarikan kabel dropcore pelanggan.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik titik koordinat.' },
+              { name: 'place_id', type: 'BIGINT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke jalur dropcore induk (customers_places.id).' },
+              { name: 'lat', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Koordinat Latitude titik jalur kabel.' },
+              { name: 'lng', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Koordinat Longitude titik jalur kabel.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan titik.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan titik.' },
+            ]
+          },
+          {
+            name: 'customer_aktifs',
+            schema: 'kios_customers',
+            description: 'Rekapitulasi historis jumlah total pelanggan aktif per periode bulanan untuk kebutuhan laporan dan grafik pertumbuhan.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik rekapitulasi.' },
+              { name: 'total_customer', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Jumlah total pelanggan berstatus aktif pada periode tersebut.' },
+              { name: 'periode', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal/bulan periode pencatatan snapshot.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pencatatan rekap.' },
+            ]
+          },
+          {
+            name: 'unmatched_customers',
+            schema: 'kios_customers',
+            description: 'Tabel penampungan sementara (staging/quarantine) untuk data migrasi atau pendaftaran pelanggan yang belum cocok dengan validasi sistem utama.',
+            columns: [
+              { name: 'id', type: 'BIGINT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik data staging pelanggan.' },
+              { name: 'branch_id', type: 'BIGINT UNSIGNED', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke cabang (branches.id).' },
+              { name: 'prospects_id', type: 'BIGINT UNSIGNED', key: '', nullable: true, defaultVal: 'NULL', desc: 'Referensi ID prospek.' },
+              { name: 'sales_nip_head', type: 'BIGINT UNSIGNED', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP koordinator sales (users.karyawan_nip).' },
+              { name: 'role', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Role penginput.' },
+              { name: 'sales_nip', type: 'BIGINT UNSIGNED', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP sales pengakuisisi (users.karyawan_nip).' },
+              { name: 'sales_phones_id', type: 'BIGINT UNSIGNED', key: '', nullable: true, defaultVal: 'NULL', desc: 'ID telepon sales.' },
+              { name: 'sales_nip_survey', type: 'BIGINT UNSIGNED', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP petugas survei (users.karyawan_nip).' },
+              { name: 'type_customer', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tipe pelanggan.' },
+              { name: 'pppoe_secret', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Username PPPoE pelanggan.' },
+              { name: 'old_pppoe_secret', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Username PPPoE lama.' },
+              { name: 'nama', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Nama lengkap pelanggan.' },
+              { name: 'no_tlp', type: 'VARCHAR(50)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor telepon pelanggan.' },
+              { name: 'service_packages_id', type: 'BIGINT UNSIGNED', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke paket layanan (service_packages.id).' },
+              { name: 'coverage_areas_id', type: 'BIGINT UNSIGNED', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke area cakupan (coverage_areas.id).' },
+              { name: 'spliter_id', type: 'BIGINT UNSIGNED', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke splitter/ODP (spliters.id).' },
+              { name: 'port_access', type: 'INT', key: '', nullable: true, defaultVal: '0', desc: 'Nomor port ODP.' },
+              { name: 'sn_modem', type: 'VARCHAR(100)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Serial number modem.' },
+              { name: 'no_onu', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor ONU.' },
+              { name: 'olt_rx', type: 'VARCHAR(50)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Redaman OLT RX.' },
+              { name: 'onu_rx', type: 'VARCHAR(50)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Redaman ONU RX.' },
+              { name: 'va', type: 'VARCHAR(50)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nomor Virtual Account.' },
+              { name: 'subscribe_start', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal mulai langganan.' },
+              { name: 'subscribe_expired', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal jatuh tempo langganan.' },
+              { name: 'subscribe_status', type: "ENUM('aktif_berlangganan','isolir','terminate','pending')", key: '', nullable: true, defaultVal: "'pending'", desc: 'Status langganan sementara.' },
+              { name: 'alamat', type: 'TEXT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Alamat lengkap pelanggan.' },
+              { name: 'nominal', type: 'DECIMAL(15,2)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Nominal tagihan/pembayaran.' },
+              { name: 'nama_modem', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tipe/merek perangkat modem.' },
+              { name: 'reason', type: 'TEXT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Alasan atau keterangan mengapa data belum cocok (unmatched).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan record.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan record.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'kios_oprasional',
+        name: 'kios_oprasional',
+        title: 'Skema Operasional Lapangan & Work Order',
+        badgeColor: 'purple',
+        description: 'Mengatur aktivitas teknis lapangan meliputi jadwal dan progres Work Order Pasang Baru (PSB), Work Order Distribusi, tim teknisi, audit validasi port ODP, serta survei jalur prospek.',
+        tables: [
+          {
+            name: 'psb_work_orders',
+            schema: 'kios_oprasional',
+            description: 'Tiket perintah kerja (Work Order) Pasang Baru (PSB) pelanggan, melacak tim teknisi, jadwal, pemakaian kabel dropcore, tahapan instalasi, hingga laporan kendala abnormal.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik Work Order PSB.' },
+              { name: 'branch_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke cabang pelaksana (branches.id).' },
+              { name: 'status_wo', type: "ENUM('prosess_validasi','tervalidasi','selesai','cancel')", key: '', nullable: false, defaultVal: '-', desc: 'Status administratif tiket Work Order.' },
+              { name: 'status_proggres', type: "ENUM('jadwal_terbit','pindah_access','mulai_penarikan','ajukan_reg','reg_done','revisi_jalur_done','instalasi_odp','instalasi_modem','speed_test')", key: '', nullable: true, defaultVal: 'NULL', desc: 'Tahapan detail pekerjaan teknisi di lapangan secara real-time.' },
+              { name: 'is_active', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: '0', desc: 'Penanda apakah WO sedang aktif dikerjakan.' },
+              { name: 'is_regist', type: 'TINYINT(1)', key: '', nullable: false, defaultVal: '0', desc: 'Penanda apakah modem ONT sudah teregistrasi di OLT oleh NOC (1 = Sudah).' },
+              { name: 'pppoe_secret', type: 'VARCHAR(30)', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke akun pelanggan yang sedang dipasang (customers.pppoe_secret).' },
+              { name: 'team_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke regu tim teknisi yang ditugaskan (technician_teams.id).' },
+              { name: 'katim_nip', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP Kepala Tim teknisi pelaksana (users.karyawan_nip).' },
+              { name: 'helper_primary_nip', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP teknisi pendamping utama (users.karyawan_nip).' },
+              { name: 'helper_secondary_nip', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP teknisi pendamping kedua (users.karyawan_nip).' },
+              { name: 'tgl_jadwal', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal jadwal pemasangan ke rumah pelanggan.' },
+              { name: 'phase', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Sesi/kloter jadwal pengerjaan dalam satu hari (misal: Kloter 1 Pagi, Kloter 2 Siang).' },
+              { name: 'start', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Timestamp saat teknisi memulai pengerjaan.' },
+              { name: 'end', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Timestamp saat pemasangan selesai dan online.' },
+              { name: 'total_waktu_penarikan', type: 'SMALLINT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Total durasi waktu pengerjaan instalasi (dalam menit).' },
+              { name: 'status_kabel', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Status penggunaan haspel/gulungan kabel dropcore.' },
+              { name: 'kabel_history_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Referensi ID stok gulungan kabel yang dibawa tim.' },
+              { name: 'kabel_detail_history_id', type: 'INT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Referensi detail pemotongan kabel.' },
+              { name: 'start_dropcore', type: 'SMALLINT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Angka meteran awal pada jaket kabel dropcore sebelum ditarik.' },
+              { name: 'end_dropcore', type: 'SMALLINT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Angka meteran akhir pada jaket kabel dropcore setelah dipotong.' },
+              { name: 'total_dropcore', type: 'SMALLINT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Total panjang kabel dropcore yang terpakai (dalam meter).' },
+              { name: 'lepas_port', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag apakah pemasangan ini mencabut port pelanggan lama yang sudah putus.' },
+              { name: 'pppoe_secret_cabut', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Username PPPoE pelanggan lama yang port ODP-nya dicabut/digantikan.' },
+              { name: 'is_abnormal', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag adanya kendala/anomali selama proses instalasi.' },
+              { name: 'is_abnormal_modem', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Flag kendala pada perangkat modem/redaman.' },
+              { name: 'keterangan_abnormal_modem', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Catatan detail kendala modem/redaman.' },
+              { name: 'kategori_abnormal_durasi', type: 'TEXT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Kategori penyebab keterlambatan durasi pemasangan.' },
+              { name: 'keterangan_abnormal_durasi', type: 'TEXT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Penjelasan detail penyebab durasi melebihi SLA.' },
+              { name: 'kategori_abnormal_jalur', type: 'TEXT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Kategori kendala jalur penarikan (misal: tiang penuh, izin warga).' },
+              { name: 'keterangan_abnormal_jalur', type: 'TEXT', key: '', nullable: true, defaultVal: 'NULL', desc: 'Penjelasan detail kendala jalur di lapangan.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: '-', desc: 'Waktu penerbitan tiket WO PSB.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan terakhir tiket WO PSB.' },
+            ]
+          },
+          {
+            name: 'distri_work_orders',
+            schema: 'kios_oprasional',
+            description: 'Tiket perintah kerja (Work Order) pembangunan atau ekspansi jaringan distribusi (pemasangan ODP/Splitter baru).',
+            columns: [
+              { name: 'distri_work_orders_id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik Work Order distribusi.' },
+              { name: 'branch_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke cabang (branches.id).' },
+              { name: 'spliters_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke splitter/ODP yang dibangun (spliters.id).' },
+              { name: 'req_by', type: "ENUM('request sales','request oprasional')", key: '', nullable: true, defaultVal: 'NULL', desc: 'Divisi pemohon pembangunan jaringan distribusi.' },
+              { name: 'proggress', type: "ENUM('jadwal terbit','mulai pengerjaan','report terkirim')", key: '', nullable: true, defaultVal: 'NULL', desc: 'Status progres pengerjaan tim distribusi.' },
+              { name: 'status_akhir', type: "ENUM('selesai')", key: '', nullable: true, defaultVal: 'NULL', desc: 'Status penyelesaian akhir WO distribusi.' },
+              { name: 'team_id', type: 'INT', key: 'FK', nullable: true, defaultVal: '1', desc: 'Relasi ke tim teknisi distribusi pelaksana (technician_teams.id).' },
+              { name: 'katim_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke user kepala tim pelaksana (users.id).' },
+              { name: 'tgl_jadwal', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal jadwal pembangunan jaringan.' },
+              { name: 'phase', type: 'INT', key: '', nullable: true, defaultVal: '1', desc: 'Tahapan/fase pengerjaan.' },
+              { name: 'start', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu mulai pengerjaan.' },
+              { name: 'end', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu selesai pengerjaan.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pembaruan record.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu pembuatan record.' },
+            ]
+          },
+          {
+            name: 'distri_spliters_route',
+            schema: 'kios_oprasional',
+            description: 'Perencanaan dan realisasi jalur penarikan kabel distribusi antar-splitter pada operasional pembangunan jaringan.',
+            columns: [
+              { name: 'id_route', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik rute distribusi.' },
+              { name: 'spliters_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke splitter tujuan (spliters.id).' },
+              { name: 'length', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Panjang jalur kabel dalam meter.' },
+              { name: 'length_text', type: 'VARCHAR(30)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Format teks panjang jalur.' },
+              { name: 'info', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Informasi spesifikasi kabel distribusi.' },
+              { name: 'points', type: 'JSON', key: '', nullable: true, defaultVal: 'NULL', desc: 'Titik-titik koordinat polyline rute di peta.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan rute.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan rute.' },
+            ]
+          },
+          {
+            name: 'technician_teams',
+            schema: 'kios_oprasional',
+            description: 'Master pengelompokan regu tim teknisi lapangan (Backbone, Distribusi, PSB) beserta susunan Kepala Tim dan anggota support.',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik tim teknisi.' },
+              { name: 'branch_company_id', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke kantor cabang induk tim (branches.id).' },
+              { name: 'nama_team', type: 'VARCHAR(100)', key: '', nullable: false, defaultVal: '-', desc: 'Nama regu/tim teknisi (misal: Tim PSB Alpha 1).' },
+              { name: 'kategori_team', type: "ENUM('Backbone','Distribusi','PSB','')", key: '', nullable: false, defaultVal: '-', desc: 'Spesialisasi bidang kerja tim teknisi.' },
+              { name: 'leader_nip', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP Kepala Tim / Leader (users.karyawan_nip).' },
+              { name: 'support_a', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP anggota teknisi pendamping pertama (users.karyawan_nip).' },
+              { name: 'support_b', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP anggota teknisi pendamping kedua (users.karyawan_nip).' },
+              { name: 'is_active', type: 'TINYINT(1)', key: '', nullable: true, defaultVal: '1', desc: 'Status keaktifan formasi tim saat ini (1 = Aktif).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembentukan tim.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan tim.' },
+            ]
+          },
+          {
+            name: 'check_odp_histories',
+            schema: 'kios_oprasional',
+            description: 'Tugas dan riwayat audit fisik ODP/Splitter di lapangan untuk memperbaiki koordinat GPS, foto fisik box, dan validasi penghuni tiap port.',
+            columns: [
+              { name: 'id', type: 'BIGINT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik tiket audit ODP.' },
+              { name: 'splitter_id', type: 'INT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi 1-ke-1 ke ODP/splitter yang diaudit (spliters.id).' },
+              { name: 'bm_nip', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP Branch Manager yang menugaskan audit (users.karyawan_nip).' },
+              { name: 'technician_nip', type: 'INT', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'NIP teknisi pelaksana pengecekan ODP (users.karyawan_nip).' },
+              { name: 'schedule_date', type: 'DATE', key: '', nullable: true, defaultVal: 'NULL', desc: 'Tanggal jadwal pengecekan ODP.' },
+              { name: 'status', type: "ENUM('unassigned','assigned','in_progress','completed')", key: '', nullable: false, defaultVal: "'unassigned'", desc: 'Status penugasan audit ODP.' },
+              { name: 'work_step', type: "ENUM('coordinate_fix','photo_upload','under_check_port','done')", key: '', nullable: false, defaultVal: "'coordinate_fix'", desc: 'Tahapan wizard audit ODP (perbaikan koordinat -> foto -> cek port -> selesai).' },
+              { name: 'close_photo_path', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Path file foto ODP tampak dekat (bagian dalam port).' },
+              { name: 'far_photo_path', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Path file foto ODP tampak jauh (lingkungan/tiang).' },
+              { name: 'start', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu mulai pengecekan di lokasi ODP.' },
+              { name: 'end', type: 'DATETIME', key: '', nullable: true, defaultVal: 'NULL', desc: 'Waktu selesai validasi ODP.' },
+              { name: 'created_by', type: "ENUM('form_input','psb')", key: '', nullable: false, defaultVal: "'form_input'", desc: 'Pemicu pembuatan tugas audit (input manual atau otomatis saat PSB).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan tiket audit.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan tiket audit.' },
+            ]
+          },
+          {
+            name: 'check_odp_ports',
+            schema: 'kios_oprasional',
+            description: 'Detail hasil pencocokan penghuni pelanggan pada setiap nomor port ODP saat dilakukan audit lapangan.',
+            columns: [
+              { name: 'id', type: 'BIGINT UNSIGNED', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik detail cek port.' },
+              { name: 'check_odp_history_id', type: 'BIGINT UNSIGNED', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke header riwayat audit ODP (check_odp_histories.id).' },
+              { name: 'port', type: 'INT', key: '', nullable: false, defaultVal: '-', desc: 'Nomor urut port pada ODP (1 s/d kapasitas splitter).' },
+              { name: 'pppoe_secret_old_value', type: 'VARCHAR(255)', key: '', nullable: true, defaultVal: 'NULL', desc: 'Data pelanggan sebelumnya yang tercatat di sistem pada port tersebut.' },
+              { name: 'pppoe_secret_updated', type: 'VARCHAR(255)', key: 'FK', nullable: true, defaultVal: 'NULL', desc: 'Relasi ke akun pelanggan aktual yang terpasang di port hasil cek fisik (customers.pppoe_secret).' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pencatatan port.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan port.' },
+            ]
+          },
+          {
+            name: 'prospects_places',
+            schema: 'kios_oprasional',
+            description: 'Hasil survei estimasi jarak tarikan kabel dari ODP terdekat ke lokasi calon pelanggan (prospek).',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik estimasi rute prospek.' },
+              { name: 'prospect_id', type: 'BIGINT', key: '', nullable: false, defaultVal: '-', desc: 'ID calon pelanggan (prospek).' },
+              { name: 'length', type: 'VARCHAR(30)', key: '', nullable: false, defaultVal: '-', desc: 'Estimasi panjang kabel dalam meter.' },
+              { name: 'length_text', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Teks format jarak estimasi.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan survei.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan survei.' },
+            ]
+          },
+          {
+            name: 'prospects_points',
+            schema: 'kios_oprasional',
+            description: 'Titik koordinat jalur survei tarikan kabel calon pelanggan (prospek).',
+            columns: [
+              { name: 'id', type: 'INT', key: 'PK', nullable: false, defaultVal: 'AUTO_INCREMENT', desc: 'Identitas unik titik survei prospek.' },
+              { name: 'place_id', type: 'BIGINT', key: 'FK', nullable: false, defaultVal: '-', desc: 'Relasi ke survei rute prospek induk (prospects_places.id).' },
+              { name: 'lat', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Koordinat Latitude titik survei.' },
+              { name: 'lng', type: 'VARCHAR(255)', key: '', nullable: false, defaultVal: '-', desc: 'Koordinat Longitude titik survei.' },
+              { name: 'created_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembuatan titik.' },
+              { name: 'updated_at', type: 'TIMESTAMP', key: '', nullable: false, defaultVal: 'CURRENT_TIMESTAMP', desc: 'Waktu pembaruan titik.' },
+            ]
+          }
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // 2. LOGICAL & EXPLICIT RELATIONSHIPS GRAPH
+    // =========================================================================
+    const DB_RELATIONS = [
+      // kios_company
+      { fromTable: 'users', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Karyawan terdaftar pada satu kantor cabang.' },
+      { fromTable: 'users', fromCol: 'division_id', toTable: 'divisions', toCol: 'id', type: 'Many-to-One', desc: 'Karyawan tergabung dalam satu divisi kerja.' },
+
+      // kios_coverage
+      { fromTable: 'coverage_areas', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Area cakupan dikelola oleh kantor cabang.' },
+      { fromTable: 'coverage_areas', fromCol: 'olt_id', toTable: 'olts', toCol: 'id_olt', type: 'Many-to-One', desc: 'Area cakupan disuplai oleh perangkat OLT.' },
+      { fromTable: 'coverage_areas', fromCol: 'olt_port_id', toTable: 'olts_ports', toCol: 'id_olt_port', type: 'Many-to-One', desc: 'Area cakupan terhubung ke port PON OLT spesifik.' },
+      { fromTable: 'coverage_areas', fromCol: 'area_primary_id', toTable: 'coverage_areas', toCol: 'id', type: 'Self-Reference', desc: 'Sub-area merujuk ke area cakupan induk.' },
+
+      { fromTable: 'olts', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Perangkat OLT ditempatkan di cabang.' },
+      { fromTable: 'olts', fromCol: 'router_id', toTable: 'routers', toCol: 'id_router', type: 'Many-to-One', desc: 'OLT terhubung ke Router POP utama.' },
+
+      { fromTable: 'olts_ports', fromCol: 'olt_id', toTable: 'olts', toCol: 'id_olt', type: 'Many-to-One', desc: 'Port PON dimiliki oleh perangkat OLT induk.' },
+      { fromTable: 'olts_ports', fromCol: 'router_id', toTable: 'routers', toCol: 'id_router', type: 'Many-to-One', desc: 'Port OLT merujuk ke Router POP.' },
+      { fromTable: 'olts_ports', fromCol: 'router_vlan_id', toTable: 'routers_vlans', toCol: 'id_router_vlan', type: 'Many-to-One', desc: 'Port OLT menggunakan alokasi VLAN dari router.' },
+
+      { fromTable: 'routers_vlans', fromCol: 'router_id', toTable: 'routers', toCol: 'id_router', type: 'Many-to-One', desc: 'Konfigurasi VLAN berada pada Router POP.' },
+
+      { fromTable: 'placements', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Titik lokasi berada di wilayah cabang.' },
+      { fromTable: 'placements', fromCol: 'area_id', toTable: 'coverage_areas', toCol: 'id', type: 'Many-to-One', desc: 'Titik penempatan berada dalam area cakupan.' },
+      { fromTable: 'placements', fromCol: 'tiang_id', toTable: 'pole', toCol: 'id', type: 'Many-to-One', desc: 'Titik penempatan terpasang pada tiang fisik.' },
+
+      { fromTable: 'pole', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Aset tiang tercatat pada cabang.' },
+      { fromTable: 'pole', fromCol: 'area_id', toTable: 'coverage_areas', toCol: 'id', type: 'Many-to-One', desc: 'Tiang berdiri di dalam area cakupan.' },
+
+      { fromTable: 'spliters', fromCol: 'coverage_areas_primary_id', toTable: 'coverage_areas', toCol: 'id', type: 'Many-to-One', desc: 'Splitter/ODP berada pada area cakupan utama.' },
+      { fromTable: 'spliters', fromCol: 'coverage_areas_id', toTable: 'coverage_areas', toCol: 'id', type: 'Many-to-One', desc: 'Splitter/ODP berada pada sub-area spesifik.' },
+      { fromTable: 'spliters', fromCol: 'placement_id', toTable: 'placements', toCol: 'id', type: 'Many-to-One', desc: 'Koordinat lokasi fisik ODP terpasang.' },
+      { fromTable: 'spliters', fromCol: 'parent_id', toTable: 'spliters', toCol: 'id', type: 'Self-Reference', desc: 'Hierarki splitter distribusi (parent) ke akses (child).' },
+
+      { fromTable: 'spliters_dampings', fromCol: 'spliters_id', toTable: 'spliters', toCol: 'id', type: 'Many-to-One', desc: 'Data redaman optik milik splitter tertentu.' },
+      { fromTable: 'spliters_route', fromCol: 'spliters_id', toTable: 'spliters', toCol: 'id', type: 'Many-to-One', desc: 'Jalur penarikan kabel menuju splitter.' },
+      { fromTable: 'splitter_documents', fromCol: 'wo_id', toTable: 'distri_work_orders', toCol: 'distri_work_orders_id', type: 'Many-to-One', desc: 'Foto ukur port hasil Work Order distribusi.' },
+      { fromTable: 'splitter_installations', fromCol: 'wo_id', toTable: 'distri_work_orders', toCol: 'distri_work_orders_id', type: 'Many-to-One', desc: 'Foto instalasi fisik box ODP dari WO distribusi.' },
+
+      // kios_customers
+      { fromTable: 'customers', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Pelanggan terdaftar di bawah kantor cabang.' },
+      { fromTable: 'customers', fromCol: 'sales_nip', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Sales yang melakukan penjualan ke pelanggan.' },
+      { fromTable: 'customers', fromCol: 'sales_nip_head', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Koordinator/Head Sales pembina akuisisi.' },
+      { fromTable: 'customers', fromCol: 'sales_nip_survey', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Petugas yang melakukan survei rumah pelanggan.' },
+      { fromTable: 'customers', fromCol: 'service_packages_id', toTable: 'service_packages', toCol: 'id', type: 'Many-to-One', desc: 'Paket kecepatan internet yang dilanggan.' },
+      { fromTable: 'customers', fromCol: 'coverage_areas_id', toTable: 'coverage_areas', toCol: 'id', type: 'Many-to-One', desc: 'Area cakupan tempat tinggal pelanggan.' },
+      { fromTable: 'customers', fromCol: 'spliter_id', toTable: 'spliters', toCol: 'id', type: 'Many-to-One', desc: 'ODP/Splitter sumber sinyal optik pelanggan.' },
+      { fromTable: 'customers', fromCol: 'cashback_receiver_id', toTable: 'customers', toCol: 'id', type: 'Self-Reference', desc: 'Pelanggan pemberi referral yang menerima cashback.' },
+      { fromTable: 'customers', fromCol: 'va', toTable: 'va_customers', toCol: 'va', type: 'One-to-One', desc: 'Nomor Virtual Account unik milik pelanggan.' },
+
+      { fromTable: 'customers_alamat_maps', fromCol: 'pppoe_secret', toTable: 'customers', toCol: 'pppoe_secret', type: 'One-to-One', desc: 'Koordinat GPS & alamat administratif pelanggan.' },
+      { fromTable: 'customers_alamat_terpasang', fromCol: 'pppoe_secret', toTable: 'customers', toCol: 'pppoe_secret', type: 'One-to-One', desc: 'Alamat lengkap RT/RW lokasi terpasang.' },
+      { fromTable: 'customer_document_details', fromCol: 'customer_id', toTable: 'customers', toCol: 'id', type: 'Many-to-One', desc: 'Berkas identitas/foto milik pelanggan.' },
+      { fromTable: 'customer_banks', fromCol: 'customer_id', toTable: 'customers', toCol: 'id', type: 'Many-to-One', desc: 'Rekening bank pelanggan untuk pencairan dana.' },
+      { fromTable: 'customer_banks', fromCol: 'input_by', toTable: 'users', toCol: 'id', type: 'Many-to-One', desc: 'Staf yang menginput data rekening.' },
+      { fromTable: 'customer_banks', fromCol: 'inactived_by', toTable: 'users', toCol: 'id', type: 'Many-to-One', desc: 'Admin yang menonaktifkan rekening.' },
+
+      { fromTable: 'va_customers', fromCol: 'customer_personal_id', toTable: 'customers', toCol: 'id', type: 'One-to-One', desc: 'Pemilik sah Virtual Account.' },
+      { fromTable: 'recurring_billings', fromCol: 'va', toTable: 'customers', toCol: 'va', type: 'Many-to-One', desc: 'Tagihan bulanan yang diterbitkan untuk VA pelanggan.' },
+      { fromTable: 'recurring_billings', fromCol: 'service_packages_id', toTable: 'service_packages', toCol: 'id', type: 'Many-to-One', desc: 'Paket layanan yang ditagihkan pada invoice.' },
+      { fromTable: 'recurring_billings', fromCol: 'history_paids_id', toTable: 'history_paids', toCol: 'id', type: 'Many-to-One', desc: 'Transaksi pembayaran yang melunasi tagihan.' },
+
+      { fromTable: 'history_paids', fromCol: 'va', toTable: 'customers', toCol: 'va', type: 'Many-to-One', desc: 'Riwayat pembayaran masuk ke VA pelanggan.' },
+      { fromTable: 'history_paids', fromCol: 'messages_id', toTable: 'messages', toCol: 'id_messages', type: 'Many-to-One', desc: 'Notifikasi tagihan yang memicu pembayaran.' },
+      { fromTable: 'history_paids', fromCol: 'slug_paket', toTable: 'service_packages', toCol: 'slug', type: 'Many-to-One', desc: 'Kode paket layanan saat pembayaran dilakukan.' },
+      { fromTable: 'recuiring_billings_errors', fromCol: 'history_paids_id', toTable: 'history_paids', toCol: 'id', type: 'Many-to-One', desc: 'Log error pemrosesan transaksi pembayaran.' },
+
+      { fromTable: 'history_layanans', fromCol: 'va', toTable: 'customers', toCol: 'va', type: 'Many-to-One', desc: 'Riwayat upgrade/downgrade paket pelanggan.' },
+      { fromTable: 'history_layanans', fromCol: 'from_pakets_id', toTable: 'service_packages', toCol: 'id', type: 'Many-to-One', desc: 'Paket layanan asal sebelum perubahan.' },
+      { fromTable: 'history_layanans', fromCol: 'to_pakets_id', toTable: 'service_packages', toCol: 'id', type: 'Many-to-One', desc: 'Paket layanan tujuan setelah perubahan.' },
+
+      { fromTable: 'history_customer_isolirs', fromCol: 'personal_id', toTable: 'customers', toCol: 'id', type: 'Many-to-One', desc: 'Riwayat eksekusi isolir/pemblokiran pelanggan.' },
+      { fromTable: 'messages', fromCol: 'pppoe_secret', toTable: 'customers', toCol: 'pppoe_secret', type: 'Many-to-One', desc: 'Riwayat pengiriman notifikasi WA ke pelanggan.' },
+      { fromTable: 'modem_replaces', fromCol: 'pppoe_secret', toTable: 'customers', toCol: 'pppoe_secret', type: 'Many-to-One', desc: 'Riwayat pergantian modem ONT pelanggan.' },
+      { fromTable: 'customer_olts', fromCol: 'pppoe_secret', toTable: 'customers', toCol: 'pppoe_secret', type: 'Many-to-One', desc: 'Sinkronisasi konfigurasi ONU pelanggan di OLT.' },
+
+      { fromTable: 'customers_terminates', fromCol: 'pppoe_secret', toTable: 'customers', toCol: 'pppoe_secret', type: 'Many-to-One', desc: 'Data pemutusan langganan pelanggan.' },
+      { fromTable: 'customers_terminates', fromCol: 'spliter_id', toTable: 'spliters', toCol: 'id', type: 'Many-to-One', desc: 'ODP tempat port dicabut saat terminasi.' },
+      { fromTable: 'customers_terminates', fromCol: 'kategori_id', toTable: 'kategori_customer_terminates', toCol: 'id', type: 'Many-to-One', desc: 'Kategori alasan pelanggan berhenti.' },
+
+      { fromTable: 'customers_points', fromCol: 'place_id', toTable: 'customers_places', toCol: 'id', type: 'Many-to-One', desc: 'Titik koordinat jalur dropcore pelanggan.' },
+
+      { fromTable: 'unmatched_customers', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Cabang data pelanggan staging.' },
+      { fromTable: 'unmatched_customers', fromCol: 'service_packages_id', toTable: 'service_packages', toCol: 'id', type: 'Many-to-One', desc: 'Paket layanan pada data staging.' },
+      { fromTable: 'unmatched_customers', fromCol: 'coverage_areas_id', toTable: 'coverage_areas', toCol: 'id', type: 'Many-to-One', desc: 'Area cakupan pada data staging.' },
+      { fromTable: 'unmatched_customers', fromCol: 'spliter_id', toTable: 'spliters', toCol: 'id', type: 'Many-to-One', desc: 'ODP pada data staging.' },
+
+      // kios_oprasional
+      { fromTable: 'psb_work_orders', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Cabang pelaksana Work Order PSB.' },
+      { fromTable: 'psb_work_orders', fromCol: 'pppoe_secret', toTable: 'customers', toCol: 'pppoe_secret', type: 'Many-to-One', desc: 'Pelanggan yang sedang dilakukan instalasi PSB.' },
+      { fromTable: 'psb_work_orders', fromCol: 'team_id', toTable: 'technician_teams', toCol: 'id', type: 'Many-to-One', desc: 'Regu tim teknisi pelaksana PSB.' },
+      { fromTable: 'psb_work_orders', fromCol: 'katim_nip', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Kepala tim teknisi instalasi PSB.' },
+      { fromTable: 'psb_work_orders', fromCol: 'helper_primary_nip', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Teknisi pendamping pertama.' },
+      { fromTable: 'psb_work_orders', fromCol: 'helper_secondary_nip', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Teknisi pendamping kedua.' },
+
+      { fromTable: 'distri_work_orders', fromCol: 'branch_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Cabang pelaksana Work Order distribusi.' },
+      { fromTable: 'distri_work_orders', fromCol: 'spliters_id', toTable: 'spliters', toCol: 'id', type: 'Many-to-One', desc: 'Splitter/ODP target pembangunan.' },
+      { fromTable: 'distri_work_orders', fromCol: 'team_id', toTable: 'technician_teams', toCol: 'id', type: 'Many-to-One', desc: 'Tim teknisi distribusi yang bertugas.' },
+      { fromTable: 'distri_work_orders', fromCol: 'katim_id', toTable: 'users', toCol: 'id', type: 'Many-to-One', desc: 'Akun kepala tim distribusi.' },
+      { fromTable: 'distri_spliters_route', fromCol: 'spliters_id', toTable: 'spliters', toCol: 'id', type: 'Many-to-One', desc: 'Rute kabel distribusi menuju splitter.' },
+
+      { fromTable: 'technician_teams', fromCol: 'branch_company_id', toTable: 'branches', toCol: 'id', type: 'Many-to-One', desc: 'Cabang tempat regu teknisi bernaung.' },
+      { fromTable: 'technician_teams', fromCol: 'leader_nip', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Kepala regu tim teknisi.' },
+      { fromTable: 'technician_teams', fromCol: 'support_a', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Anggota teknisi A.' },
+      { fromTable: 'technician_teams', fromCol: 'support_b', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Anggota teknisi B.' },
+
+      { fromTable: 'check_odp_histories', fromCol: 'splitter_id', toTable: 'spliters', toCol: 'id', type: 'One-to-One', desc: 'ODP/Splitter yang menjadi objek audit lapangan.' },
+      { fromTable: 'check_odp_histories', fromCol: 'bm_nip', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Branch Manager pemberi tugas audit.' },
+      { fromTable: 'check_odp_histories', fromCol: 'technician_nip', toTable: 'users', toCol: 'karyawan_nip', type: 'Many-to-One', desc: 'Teknisi pelaksana audit ODP.' },
+
+      { fromTable: 'check_odp_ports', fromCol: 'check_odp_history_id', toTable: 'check_odp_histories', toCol: 'id', type: 'Many-to-One', desc: 'Header sesi audit ODP (FK eksplisit ON DELETE CASCADE).' },
+      { fromTable: 'check_odp_ports', fromCol: 'pppoe_secret_updated', toTable: 'customers', toCol: 'pppoe_secret', type: 'One-to-One', desc: 'Pelanggan terverifikasi menempati port ODP.' },
+
+      { fromTable: 'prospects_points', fromCol: 'place_id', toTable: 'prospects_places', toCol: 'id', type: 'Many-to-One', desc: 'Titik koordinat jalur survei prospek.' },
+    ];
+
+    // =========================================================================
+    // 3. STATE MANAGEMENT & HELPER FUNCTIONS
+    // =========================================================================
+    let state = {
+      view: 'overview', // 'overview' | 'schema' | 'table'
+      selectedSchemaId: null,
+      selectedTableName: null,
+      sidebarSchemaFilter: 'all',
+      searchQuery: '',
+      keyFilter: 'all', // 'all' | 'PK' | 'FK' | 'UQ'
+    };
+
+    // Flatten lookup maps
+    const allTablesMap = new Map();
+    const schemaMap = new Map();
+
+    DB_SCHEMAS.forEach(schema => {
+      schemaMap.set(schema.id, schema);
+      schema.tables.forEach(tbl => {
+        allTablesMap.set(tbl.name, tbl);
+      });
+    });
+
+    const colorThemes = {
+      blue: {
+        bg: 'bg-blue-50 dark:bg-blue-950/40',
+        text: 'text-blue-700 dark:text-blue-300',
+        border: 'border-blue-200 dark:border-blue-800/60',
+        dot: 'bg-blue-500',
+        badge: 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300',
+      },
+      emerald: {
+        bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+        text: 'text-emerald-700 dark:text-emerald-300',
+        border: 'border-emerald-200 dark:border-emerald-800/60',
+        dot: 'bg-emerald-500',
+        badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300',
+      },
+      amber: {
+        bg: 'bg-amber-50 dark:bg-amber-950/40',
+        text: 'text-amber-700 dark:text-amber-300',
+        border: 'border-amber-200 dark:border-amber-800/60',
+        dot: 'bg-amber-500',
+        badge: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300',
+      },
+      purple: {
+        bg: 'bg-purple-50 dark:bg-purple-950/40',
+        text: 'text-purple-700 dark:text-purple-300',
+        border: 'border-purple-200 dark:border-purple-800/60',
+        dot: 'bg-purple-500',
+        badge: 'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300',
+      },
+    };
+
+    function getSchemaTheme(schemaId) {
+      const schema = schemaMap.get(schemaId);
+      return colorThemes[schema ? schema.badgeColor : 'blue'];
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMessage');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2400);
+    }
+
+    function copyText(text, label) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(label || `Disalin: ${text}`);
+      } catch (e) {
+        showToast('Gagal menyalin teks');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // =========================================================================
+    // 4. NAVIGATION ACTIONS
+    // =========================================================================
+    function showOverview() {
+      state.view = 'overview';
+      state.selectedSchemaId = null;
+      state.selectedTableName = null;
+      closeMobileSidebar();
+      renderSidebar();
+      renderMain();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectSchema(schemaId) {
+      state.view = 'schema';
+      state.selectedSchemaId = schemaId;
+      state.selectedTableName = null;
+      closeMobileSidebar();
+      renderSidebar();
+      renderMain();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectTable(tableName) {
+      const tbl = allTablesMap.get(tableName);
+      if (!tbl) return;
+      state.view = 'table';
+      state.selectedSchemaId = tbl.schema;
+      state.selectedTableName = tableName;
+      state.keyFilter = 'all';
+      closeMobileSidebar();
+      renderSidebar();
+      renderMain();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setSidebarFilter(filterId) {
+      state.sidebarSchemaFilter = filterId;
+      renderSidebar();
+    }
+
+    function setKeyFilter(keyType) {
+      state.keyFilter = keyType;
+      renderMain();
+    }
+
+    // =========================================================================
+    // 5. RENDER SIDEBAR
+    // =========================================================================
+    function renderSidebar() {
+      const filterContainer = document.getElementById('schemaFilterBtns');
+      const treeContainer = document.getElementById('sidebarTree');
+      const countBadge = document.getElementById('tableCountBadge');
+
+      const filters = [
+        { id: 'all', label: 'Semua (4)' },
+        { id: 'kios_company', label: 'Company' },
+        { id: 'kios_coverage', label: 'Coverage' },
+        { id: 'kios_customers', label: 'Customers' },
+        { id: 'kios_oprasional', label: 'Oprasional' },
+      ];
+
+      filterContainer.innerHTML = filters.map(f => {
+        const active = state.sidebarSchemaFilter === f.id;
+        return `
+          <button type="button" onclick="setSidebarFilter('${f.id}')"
+            class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-left truncate transition ${
+              active
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+            }">
+            ${f.label}
+          </button>
+        `;
+      }).join('');
+
+      const q = state.searchQuery.trim().toLowerCase();
+      let visibleTablesCount = 0;
+
+      const htmlParts = DB_SCHEMAS.filter(s => state.sidebarSchemaFilter === 'all' || s.id === state.sidebarSchemaFilter).map(schema => {
+        const theme = getSchemaTheme(schema.id);
+        const matchingTables = schema.tables.filter(tbl => {
+          if (!q) return true;
+          if (tbl.name.toLowerCase().includes(q) || tbl.description.toLowerCase().includes(q) || schema.name.toLowerCase().includes(q)) return true;
+          return tbl.columns.some(c => c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
+        });
+
+        visibleTablesCount += matchingTables.length;
+
+        if (matchingTables.length === 0 && q) return '';
+
+        const isSchemaSelected = state.view === 'schema' && state.selectedSchemaId === schema.id;
+
+        return `
+          <div class="space-y-1">
+            <button type="button" onclick="selectSchema('${schema.id}')"
+              class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition group ${
+                isSchemaSelected
+                  ? `${theme.bg} ${theme.text} ring-1 ring-inset ${theme.border}`
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70'
+              }">
+              <span class="flex items-center gap-2 truncate">
+                <span class="w-2 h-2 rounded-full ${theme.dot} shrink-0"></span>
+                <span class="font-mono truncate">${schema.name}</span>
+              </span>
+              <span class="text-[11px] font-mono px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                ${matchingTables.length}
+              </span>
+            </button>
+
+            <div class="pl-3 space-y-0.5 border-l border-slate-200 dark:border-slate-800 ml-3">
+              ${matchingTables.map(tbl => {
+                const active = state.view === 'table' && state.selectedTableName === tbl.name;
+                return `
+                  <button type="button" onclick="selectTable('${tbl.name}')"
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-mono transition text-left ${
+                      active
+                        ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
+                    }">
+                    <span class="truncate">${tbl.name}</span>
+                    <span class="text-[10px] opacity-60 ml-2 shrink-0">${tbl.columns.length}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      countBadge.textContent = `${visibleTablesCount} Tabel`;
+      treeContainer.innerHTML = htmlParts.join('') || `
+        <div class="text-center py-8 px-4">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Tidak ada tabel atau field yang cocok dengan "<span class="font-semibold">${escapeHtml(state.searchQuery)}</span>".</p>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 6. RENDER MAIN CONTENT VIEWS
+    // =========================================================================
+    function renderMain() {
+      const container = document.getElementById('mainContent');
+      const q = state.searchQuery.trim().toLowerCase();
+
+      // If user is typing in global search while on overview, show live search results banner
+      if (q && state.view === 'overview') {
+        renderSearchResultsView(container, q);
+        return;
+      }
+
+      if (state.view === 'overview') {
+        renderOverviewView(container);
+      } else if (state.view === 'schema') {
+        renderSchemaView(container, state.selectedSchemaId);
+      } else if (state.view === 'table') {
+        renderTableView(container, state.selectedTableName);
+      }
+    }
+
+    // --- VIEW A: OVERVIEW ---
+    function renderOverviewView(container) {
+      const totalTables = DB_SCHEMAS.reduce((sum, s) => sum + s.tables.length, 0);
+      const totalFields = DB_SCHEMAS.reduce((sum, s) => sum + s.tables.reduce((tSum, t) => tSum + t.columns.length, 0), 0);
+      const totalRelations = DB_RELATIONS.length;
+
+      container.innerHTML = `
+        <div class="max-w-6xl mx-auto space-y-8">
+          <!-- Hero Header -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-800/60 mb-4">
+              <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+              MySQL 8.0 • InnoDB • UTF8MB4
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Dokumentasi Arsitektur Database KIOS
+            </h2>
+            <p class="mt-2.5 text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
+              Kamus data (<em>Data Dictionary</em>) interaktif untuk sistem manajemen ISP & FTTH KIOS. Mencakup dokumentasi terstruktur untuk seluruh skema, spesifikasi tiap tabel, deskripsi variabel/field, tipe data, kunci indeks, serta pemetaan relasi antar-entitas.
+            </p>
+
+            <!-- Summary Metrics -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
+                <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Skema</div>
+                <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1 font-mono">${DB_SCHEMAS.length}</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
+                <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Tabel</div>
+                <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1 font-mono">${totalTables}</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
+                <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Field / Kolom</div>
+                <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1 font-mono">${totalFields}</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-800">
+                <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Relasi Terpetakan</div>
+                <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1 font-mono">${totalRelations}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Schema Cards -->
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <span>Daftar Skema Database</span>
+              <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(Klik skema untuk melihat daftar tabel)</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              ${DB_SCHEMAS.map(schema => {
+                const theme = getSchemaTheme(schema.id);
+                const fieldSum = schema.tables.reduce((acc, t) => acc + t.columns.length, 0);
+                return `
+                  <div onclick="selectSchema('${schema.id}')"
+                    class="group cursor-pointer bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                      <div class="flex items-center justify-between gap-2 mb-3">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-mono font-semibold ${theme.badge}">
+                          <span class="w-2 h-2 rounded-full ${theme.dot}"></span>
+                          ${schema.name}
+                        </span>
+                        <span class="text-xs font-mono text-slate-500 dark:text-slate-400">
+                          ${schema.tables.length} Tabel • ${fieldSum} Field
+                        </span>
+                      </div>
+                      <h4 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                        ${schema.title}
+                      </h4>
+                      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                        ${schema.description}
+                      </p>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+                      <div class="flex flex-wrap gap-1.5">
+                        ${schema.tables.slice(0, 6).map(t => `
+                          <span onclick="event.stopPropagation(); selectTable('${t.name}')"
+                            class="px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 hover:text-indigo-700 dark:hover:text-indigo-300 transition">
+                            ${t.name}
+                          </span>
+                        `).join('')}
+                        ${schema.tables.length > 6 ? `
+                          <span class="px-2 py-0.5 rounded-md text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                            +${schema.tables.length - 6} lainnya
+                          </span>
+                        ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Architectural Flow Info -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mb-3">Alur Integrasi Antar-Skema</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              <div class="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/50">
+                <div class="font-bold text-blue-700 dark:text-blue-300 mb-1">1. Fondasi (kios_company)</div>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed">Menyediakan referensi <code class="font-mono">branch_id</code>, <code class="font-mono">karyawan_nip</code>, dan <code class="font-mono">service_packages</code> yang menjadi acuan di seluruh skema lain.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/50">
+                <div class="font-bold text-emerald-700 dark:text-emerald-300 mb-1">2. Jaringan (kios_coverage)</div>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed">Memetakan hierarki <code class="font-mono">routers → olts → olts_ports → coverage_areas → spliters (ODP)</code> sebagai titik terminasi pelanggan.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/50">
+                <div class="font-bold text-amber-700 dark:text-amber-300 mb-1">3. Pelanggan & Billing (kios_customers)</div>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed">Menghubungkan <code class="font-mono">customers</code> ke ODP (<code class="font-mono">spliter_id</code>) dan memproses siklus tagihan via kunci unik <code class="font-mono">va</code> dan <code class="font-mono">pppoe_secret</code>.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-900/50">
+                <div class="font-bold text-purple-700 dark:text-purple-300 mb-1">4. Eksekusi Lapangan (kios_oprasional)</div>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed">Mengorkestrasi <code class="font-mono">psb_work_orders</code>, <code class="font-mono">distri_work_orders</code>, dan <code class="font-mono">check_odp_histories</code> oleh tim teknisi.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VIEW B: SCHEMA DETAIL ---
+    function renderSchemaView(container, schemaId) {
+      const schema = schemaMap.get(schemaId);
+      if (!schema) return showOverview();
+      const theme = getSchemaTheme(schema.id);
+
+      container.innerHTML = `
+        <div class="max-w-6xl mx-auto space-y-6">
+          <!-- Breadcrumb -->
+          <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <button onclick="showOverview()" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Ringkasan</button>
+            <span>/</span>
+            <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">${schema.name}</span>
+          </nav>
+
+          <!-- Schema Header Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-3">
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-mono font-semibold ${theme.badge}">
+                <span class="w-2 h-2 rounded-full ${theme.dot}"></span>
+                SCHEMA: ${schema.name}
+              </span>
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">
+                ${schema.tables.length} Tabel Terdaftar
+              </span>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">${schema.title}</h2>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
+              ${schema.description}
+            </p>
+          </div>
+
+          <!-- Tables Grid in Schema -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${schema.tables.map(tbl => {
+              const outRels = DB_RELATIONS.filter(r => r.fromTable === tbl.name).length;
+              const inRels = DB_RELATIONS.filter(r => r.toTable === tbl.name).length;
+              const pkCol = tbl.columns.find(c => c.key === 'PK');
+              return `
+                <div onclick="selectTable('${tbl.name}')"
+                  class="group cursor-pointer bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                      <h3 class="font-mono font-bold text-base text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                        ${tbl.name}
+                      </h3>
+                      <span class="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                        ${tbl.columns.length} field
+                      </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
+                      ${tbl.description}
+                    </p>
+                  </div>
+
+                  <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                    <div>
+                      ${pkCol ? `<span class="font-mono"><strong class="text-amber-600 dark:text-amber-400">PK:</strong> ${pkCol.name}</span>` : ''}
+                    </div>
+                    <div class="flex items-center gap-3 font-mono">
+                      <span title="Relasi keluar (Foreign Key)">↗ ${outRels} Out</span>
+                      <span title="Direferensikan oleh tabel lain">↙ ${inRels} In</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VIEW C: TABLE DETAIL (FIELDS, DESCRIPTIONS & RELATIONS) ---
+    function renderTableView(container, tableName) {
+      const tbl = allTablesMap.get(tableName);
+      if (!tbl) return showOverview();
+      const schema = schemaMap.get(tbl.schema);
+      const theme = getSchemaTheme(tbl.schema);
+
+      const outgoingRelations = DB_RELATIONS.filter(r => r.fromTable === tbl.name);
+      const incomingRelations = DB_RELATIONS.filter(r => r.toTable === tbl.name);
+
+      const q = state.searchQuery.trim().toLowerCase();
+      const filteredColumns = tbl.columns.filter(col => {
+        const matchKey = state.keyFilter === 'all' || col.key === state.keyFilter;
+        const matchQuery = !q ||
+          col.name.toLowerCase().includes(q) ||
+          col.type.toLowerCase().includes(q) ||
+          col.desc.toLowerCase().includes(q);
+        return matchKey && matchQuery;
+      });
+
+      const pkCount = tbl.columns.filter(c => c.key === 'PK').length;
+      const fkCount = tbl.columns.filter(c => c.key === 'FK').length;
+      const uqCount = tbl.columns.filter(c => c.key === 'UQ').length;
+
+      container.innerHTML = `
+        <div class="max-w-6xl mx-auto space-y-6">
+          <!-- Breadcrumb -->
+          <nav class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <button onclick="showOverview()" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Ringkasan</button>
+            <span>/</span>
+            <button onclick="selectSchema('${schema.id}')" class="font-mono hover:text-indigo-600 dark:hover:text-indigo-400 transition">${schema.name}</button>
+            <span>/</span>
+            <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">${tbl.name}</span>
+          </nav>
+
+          <!-- Table Header Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div class="flex items-center gap-2">
+                <button onclick="selectSchema('${schema.id}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold ${theme.badge} hover:opacity-90 transition">
+                  <span class="w-2 h-2 rounded-full ${theme.dot}"></span>
+                  ${schema.name}
+                </button>
+                <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  ${tbl.columns.length} Variabel/Field
+                </span>
+              </div>
+
+              <button type="button" onclick="copyText('${schema.name}.${tbl.name}', 'Nama lengkap tabel disalin!')"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                ${schema.name}.${tbl.name}
+              </button>
+            </div>
+
+            <h2 class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
+              ${tbl.name}
+            </h2>
+            <p class="mt-2.5 text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed max-w-4xl">
+              ${tbl.description}
+            </p>
+          </div>
+
+          <!-- Fields / Columns Dictionary Section -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Struktur Variabel / Field</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftar lengkap kolom, tipe data MySQL, constraint kunci, dan fungsi bisnis masing-masing field.</p>
+              </div>
+
+              <!-- Key Filter Buttons -->
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button onclick="setKeyFilter('all')" class="px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${state.keyFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+                  Semua (${tbl.columns.length})
+                </button>
+                <button onclick="setKeyFilter('PK')" class="px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${state.keyFilter === 'PK' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+                  PK (${pkCount})
+                </button>
+                <button onclick="setKeyFilter('FK')" class="px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${state.keyFilter === 'FK' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+                  FK (${fkCount})
+                </button>
+                <button onclick="setKeyFilter('UQ')" class="px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${state.keyFilter === 'UQ' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+                  Unique (${uqCount})
+                </button>
+              </div>
+            </div>
+
+            <!-- Responsive Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <th class="py-3.5 px-4 sm:px-6 w-12">#</th>
+                    <th class="py-3.5 px-4">Nama Variabel / Field</th>
+                    <th class="py-3.5 px-4">Tipe Data</th>
+                    <th class="py-3.5 px-4">Atribut</th>
+                    <th class="py-3.5 px-4 sm:px-6 min-w-[280px]">Deskripsi Field</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
+                  ${filteredColumns.map((col, idx) => {
+                    const relForCol = outgoingRelations.find(r => r.fromCol === col.name);
+                    let keyBadge = '';
+                    if (col.key === 'PK') {
+                      keyBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800">PK</span>`;
+                    } else if (col.key === 'FK') {
+                      keyBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">FK</span>`;
+                    } else if (col.key === 'UQ') {
+                      keyBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">UQ</span>`;
+                    }
+
+                    return `
+                      <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition align-top">
+                        <td class="py-3.5 px-4 sm:px-6 font-mono text-xs text-slate-400">${idx + 1}</td>
+                        <td class="py-3.5 px-4">
+                          <div class="flex items-center gap-2">
+                            <span class="font-mono font-semibold text-slate-900 dark:text-white cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400"
+                              onclick="copyText('${col.name}', 'Nama field disalin: ${col.name}')">
+                              ${escapeHtml(col.name)}
+                            </span>
+                            ${keyBadge}
+                          </div>
+                          ${relForCol ? `
+                            <button type="button" onclick="selectTable('${relForCol.toTable}')"
+                              class="mt-1.5 inline-flex items-center gap-1 text-[11px] font-mono text-indigo-600 dark:text-indigo-400 hover:underline">
+                              <span>→ ${relForCol.toTable}.${relForCol.toCol}</span>
+                            </button>
+                          ` : ''}
+                        </td>
+                        <td class="py-3.5 px-4">
+                          <code class="text-xs font-mono px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 break-all inline-block max-w-[220px]">
+                            ${escapeHtml(col.type)}
+                          </code>
+                        </td>
+                        <td class="py-3.5 px-4 text-xs">
+                          <div class="space-y-1">
+                            <div>
+                              ${col.nullable
+                                ? '<span class="text-slate-400 dark:text-slate-500 font-mono">NULLABLE</span>'
+                                : '<span class="text-rose-600 dark:text-rose-400 font-mono font-medium">NOT NULL</span>'}
+                            </div>
+                            ${col.defaultVal !== '-' ? `
+                              <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                                Def: <span class="text-slate-700 dark:text-slate-300">${escapeHtml(col.defaultVal)}</span>
+                              </div>
+                            ` : ''}
+                          </div>
+                        </td>
+                        <td class="py-3.5 px-4 sm:px-6 text-slate-600 dark:text-slate-300 leading-relaxed text-[13px]">
+                          ${escapeHtml(col.desc)}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Relations Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Pemetaan Relasi Tabel</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Keterhubungan tabel <code class="font-mono">${tbl.name}</code> dengan tabel lain di seluruh skema database (klik tabel tujuan untuk berpindah).</p>
+              </div>
+              <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                ${outgoingRelations.length + incomingRelations.length} Relasi
+              </span>
+            </div>
+
+            ${(outgoingRelations.length === 0 && incomingRelations.length === 0) ? `
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-xs text-slate-500 dark:text-slate-400 text-center">
+                Tabel ini berdiri independen (log/snapshot) dan tidak memiliki relasi kunci langsung ke tabel lain.
+              </div>
+            ` : `
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Outgoing Relations -->
+                <div>
+                  <h4 class="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-1.5">
+                    <span>↗ Relasi Keluar / Merujuk Ke (${outgoingRelations.length})</span>
+                  </h4>
+                  ${outgoingRelations.length === 0 ? `
+                    <p class="text-xs text-slate-400 italic p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">Tidak ada foreign key keluar dari tabel ini.</p>
+                  ` : `
+                    <div class="space-y-2.5">
+                      ${outgoingRelations.map(r => {
+                        const targetTbl = allTablesMap.get(r.toTable);
+                        const targetTheme = targetTbl ? getSchemaTheme(targetTbl.schema) : colorThemes.blue;
+                        return `
+                          <div onclick="selectTable('${r.toTable}')"
+                            class="cursor-pointer p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50/70 dark:hover:bg-indigo-950/30 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                              <div class="font-mono text-xs">
+                                <span class="font-semibold text-slate-700 dark:text-slate-200">${r.fromCol}</span>
+                                <span class="text-slate-400 mx-1">→</span>
+                                <span class="font-bold text-indigo-600 dark:text-indigo-400">${r.toTable}</span><span class="text-slate-500">.${r.toCol}</span>
+                              </div>
+                              <span class="text-[10px] font-mono px-2 py-0.5 rounded-md ${targetTheme.badge}">
+                                ${targetTbl ? targetTbl.schema : ''}
+                              </span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400">
+                              <span>${escapeHtml(r.desc)}</span>
+                              <span class="text-[10px] font-mono text-slate-400 shrink-0">${r.type}</span>
+                            </div>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  `}
+                </div>
+
+                <!-- Incoming Relations -->
+                <div>
+                  <h4 class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-1.5">
+                    <span>↙ Direferensikan Oleh Tabel Lain (${incomingRelations.length})</span>
+                  </h4>
+                  ${incomingRelations.length === 0 ? `
+                    <p class="text-xs text-slate-400 italic p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">Belum ada tabel lain yang merujuk ke tabel ini.</p>
+                  ` : `
+                    <div class="space-y-2.5">
+                      ${incomingRelations.map(r => {
+                        const sourceTbl = allTablesMap.get(r.fromTable);
+                        const sourceTheme = sourceTbl ? getSchemaTheme(sourceTbl.schema) : colorThemes.emerald;
+                        return `
+                          <div onclick="selectTable('${r.fromTable}')"
+                            class="cursor-pointer p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/20 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 transition">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                              <div class="font-mono text-xs">
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400">${r.fromTable}</span><span class="text-slate-500">.${r.fromCol}</span>
+                                <span class="text-slate-400 mx-1">→</span>
+                                <span class="font-semibold text-slate-700 dark:text-slate-200">${r.toCol}</span>
+                              </div>
+                              <span class="text-[10px] font-mono px-2 py-0.5 rounded-md ${sourceTheme.badge}">
+                                ${sourceTbl ? sourceTbl.schema : ''}
+                              </span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400">
+                              <span>${escapeHtml(r.desc)}</span>
+                              <span class="text-[10px] font-mono text-slate-400 shrink-0">${r.type}</span>
+                            </div>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  `}
+                </div>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VIEW D: GLOBAL SEARCH RESULTS ---
+    function renderSearchResultsView(container, q) {
+      const matchedTables = [];
+      const matchedFields = [];
+
+      DB_SCHEMAS.forEach(schema => {
+        schema.tables.forEach(tbl => {
+          if (tbl.name.toLowerCase().includes(q) || tbl.description.toLowerCase().includes(q)) {
+            matchedTables.push(tbl);
+          }
+          tbl.columns.forEach(col => {
+            if (col.name.toLowerCase().includes(q) || col.desc.toLowerCase().includes(q) || col.type.toLowerCase().includes(q)) {
+              matchedFields.push({ table: tbl, column: col });
+            }
+          });
+        });
+      });
+
+      container.innerHTML = `
+        <div class="max-w-6xl mx-auto space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+                Hasil Pencarian: "<span class="text-indigo-600 dark:text-indigo-400">${escapeHtml(state.searchQuery)}</span>"
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Ditemukan ${matchedTables.length} tabel dan ${matchedFields.length} field yang relevan.
+              </p>
+            </div>
+            <button onclick="clearSearch()" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition">
+              Reset Pencarian
+            </button>
+          </div>
+
+          ${matchedTables.length > 0 ? `
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Tabel Cocok (${matchedTables.length})</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${matchedTables.map(tbl => {
+                  const theme = getSchemaTheme(tbl.schema);
+                  return `
+                    <div onclick="selectTable('${tbl.name}')"
+                      class="cursor-pointer bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 transition">
+                      <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <span class="font-mono font-bold text-sm text-indigo-600 dark:text-indigo-400">${tbl.name}</span>
+                        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md ${theme.badge}">${tbl.schema}</span>
+                      </div>
+                      <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">${escapeHtml(tbl.description)}</p>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          ${matchedFields.length > 0 ? `
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Variabel / Field Cocok (${matchedFields.length})</h3>
+              <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                  ${matchedFields.slice(0, 50).map(({ table, column }) => {
+                    const theme = getSchemaTheme(table.schema);
+                    return `
+                      <div onclick="selectTable('${table.name}')"
+                        class="cursor-pointer p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+                            <span class="font-bold text-slate-900 dark:text-white">${escapeHtml(column.name)}</span>
+                            <span class="text-slate-400">di</span>
+                            <span class="text-indigo-600 dark:text-indigo-400 font-semibold">${table.name}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] ${theme.badge}">${table.schema}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${escapeHtml(column.type)}</span>
+                          </div>
+                          <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">${escapeHtml(column.desc)}</p>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 7. SEARCH, THEME & MOBILE DRAWER HANDLERS
+    // =========================================================================
+    const searchInput = document.getElementById('globalSearch');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    function clearSearch() {
+      state.searchQuery = '';
+      searchInput.value = '';
+      clearSearchBtn.classList.add('hidden');
+      renderSidebar();
+      renderMain();
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      state.searchQuery = e.target.value;
+      if (state.searchQuery.trim().length > 0) {
+        clearSearchBtn.classList.remove('hidden');
+      } else {
+        clearSearchBtn.classList.add('hidden');
+      }
+      renderSidebar();
+      renderMain();
+    });
+
+    clearSearchBtn.addEventListener('click', clearSearch);
+
+    // Keyboard shortcut Ctrl+K / Cmd+K
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+      }
+    });
+
+    // Dark/Light Mode Initialization
+    const htmlEl = document.documentElement;
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      htmlEl.classList.add('dark');
+    }
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      htmlEl.classList.toggle('dark');
+    });
+
+    // Mobile Sidebar Drawer
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    function openMobileSidebar() {
+      sidebar.classList.remove('-translate-x-full');
+      backdrop.classList.remove('hidden');
+    }
+
+    function closeMobileSidebar() {
+      sidebar.classList.add('-translate-x-full');
+      backdrop.classList.add('hidden');
+    }
+
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      if (sidebar.classList.contains('-translate-x-full')) {
+        openMobileSidebar();
+      } else {
+        closeMobileSidebar();
+      }
+    });
+
+    backdrop.addEventListener('click', closeMobileSidebar);
+
+    // Initial Render
+    renderSidebar();
+    renderMain();
+  </script>
+</body>
+</html>
